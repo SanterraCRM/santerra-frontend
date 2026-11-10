@@ -6,6 +6,12 @@ import { DEFAULT_CALLBACK_URL } from '@/lib/callback-url';
 const LOGIN_PATH = '/auth/login';
 const SIGN_UP_PATH = '/auth/sign-up';
 const SELECT_COMPANY_PATH = '/auth/select-company';
+const CREATE_COMPANY_PATH = '/auth/create-company';
+const PLATFORM_PATH = '/admin/platform';
+
+function isPlatformPath(pathname: string): boolean {
+  return pathname === PLATFORM_PATH || pathname.startsWith(`${PLATFORM_PATH}/`);
+}
 
 function redirectWithCallback(request: NextRequest, path: string) {
   const { pathname, search } = request.nextUrl;
@@ -36,7 +42,7 @@ export async function proxy(request: NextRequest) {
       );
     }
 
-    if (pathname === SELECT_COMPANY_PATH && !isAuthenticated) {
+    if ((pathname === SELECT_COMPANY_PATH || pathname === CREATE_COMPANY_PATH) && !isAuthenticated) {
       return NextResponse.redirect(new URL(LOGIN_PATH, request.url));
     }
 
@@ -47,7 +53,7 @@ export async function proxy(request: NextRequest) {
     return redirectWithCallback(request, LOGIN_PATH);
   }
 
-  if (!hasCompany) {
+  if (!hasCompany && !(token?.isPlatformAdmin === true && isPlatformPath(pathname))) {
     return redirectWithCallback(request, SELECT_COMPANY_PATH);
   }
 

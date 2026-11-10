@@ -20,7 +20,7 @@ import {
 
 type RowActionsProps = {
   label: string;
-  href: string;
+  href?: string;
   canUpdate: boolean;
   deleteDialog?: DeleteDialogOptions;
 };
@@ -29,6 +29,14 @@ export function RowActions({ label, href, canUpdate, deleteDialog }: RowActionsP
   const router = useRouter();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
+
+  if (!href && !deleteDialog) {
+    return (
+      <span aria-hidden='true' className='text-muted-foreground'>
+        —
+      </span>
+    );
+  }
 
   return (
     <>
@@ -46,19 +54,21 @@ export function RowActions({ label, href, canUpdate, deleteDialog }: RowActionsP
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align='end' className='w-44'>
-          <DropdownMenuItem asChild>
-            <Link href={href}>
-              {canUpdate ? <Pencil /> : <Eye />}
-              {canUpdate ? 'Editar' : 'Visualizar'}
-            </Link>
-          </DropdownMenuItem>
+          {href && (
+            <DropdownMenuItem asChild>
+              <Link href={href}>
+                {canUpdate ? <Pencil /> : <Eye />}
+                {canUpdate ? 'Editar' : 'Visualizar'}
+              </Link>
+            </DropdownMenuItem>
+          )}
 
           {deleteDialog && (
             <>
-              <DropdownMenuSeparator />
+              {href && <DropdownMenuSeparator />}
               <DropdownMenuItem variant='destructive' onSelect={() => setIsDeleteOpen(true)}>
                 <Trash2 />
-                Excluir
+                {deleteDialog.actionLabel ?? 'Excluir'}
               </DropdownMenuItem>
             </>
           )}

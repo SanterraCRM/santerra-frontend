@@ -15,12 +15,70 @@ const dateInputFormatter = new Intl.DateTimeFormat('en-CA', {
   timeZone: TIME_ZONE,
 });
 
+const MONEY_MAX_DIGITS = 14;
+
 const decimalFormatter = new Intl.NumberFormat('pt-BR', {
   maximumFractionDigits: DECIMAL_FRACTION_DIGITS,
 });
 
+const currencyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+const percentFormatter = new Intl.NumberFormat('pt-BR', {
+  style: 'percent',
+  maximumFractionDigits: 1,
+});
+
+const fileSizeFormatter = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
+
 export function onlyDigits(value: string): string {
   return value.replace(/\D/g, '');
+}
+
+export function formatCurrency(value: number): string {
+  return currencyFormatter.format(value);
+}
+
+export function maskMoney(value: string): string {
+  const digits = onlyDigits(value).replace(/^0+/, '').slice(0, MONEY_MAX_DIGITS);
+
+  if (!digits) {
+    return '';
+  }
+
+  const cents = digits.padStart(3, '0');
+  const integer = cents.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+  return `${integer},${cents.slice(-2)}`;
+}
+
+export function parseMoney(value: string): number | null {
+  const digits = onlyDigits(value);
+
+  return digits ? Number((Number(digits) / 100).toFixed(2)) : null;
+}
+
+export function toMoneyInputValue(value: number): string {
+  return maskMoney(value.toFixed(2));
+}
+
+export function toMoneyParam(value: string): string {
+  return parseMoney(value)?.toFixed(2) ?? '';
+}
+
+export function formatPercent(ratio: number): string {
+  return percentFormatter.format(ratio);
+}
+
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${fileSizeFormatter.format(bytes / 1024)} KB`;
+  }
+
+  return `${fileSizeFormatter.format(bytes / (1024 * 1024))} MB`;
 }
 
 export function formatDecimal(value: number): string {
@@ -81,12 +139,14 @@ function applyMask(digits: string, groups: number[], separators: string[]): stri
   return masked;
 }
 
+export function maskCnpj(value: string): string {
+  return applyMask(onlyDigits(value).slice(0, 14), [2, 3, 3, 4, 2], ['.', '.', '/', '-']);
+}
+
 export function maskNationalId(value: string): string {
   const digits = onlyDigits(value).slice(0, 14);
 
-  return digits.length <= 11
-    ? applyMask(digits, [3, 3, 3, 2], ['.', '.', '-'])
-    : applyMask(digits, [2, 3, 3, 4, 2], ['.', '.', '/', '-']);
+  return digits.length <= 11 ? applyMask(digits, [3, 3, 3, 2], ['.', '.', '-']) : maskCnpj(digits);
 }
 
 export function maskPhone(value: string): string {

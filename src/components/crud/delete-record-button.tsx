@@ -16,7 +16,7 @@ type DeleteRecordButtonProps = DeleteDialogOptions & {
 
 export function DeleteRecordButton({
   listHref,
-  label = 'Excluir',
+  label,
   size = 'default',
   ...dialog
 }: DeleteRecordButtonProps) {
@@ -32,7 +32,7 @@ export function DeleteRecordButton({
     >
       <Button variant='destructive' size={size}>
         <Trash2 />
-        {label}
+        {label ?? dialog.actionLabel ?? 'Excluir'}
       </Button>
     </ConfirmDeleteDialog>
   );

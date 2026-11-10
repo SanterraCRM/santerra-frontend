@@ -1,16 +1,28 @@
 import {
   Boxes,
   BriefcaseBusiness,
+  Building,
+  Building2,
   CalendarDays,
   Contact,
+  Factory,
   Gauge,
   Handshake,
   House,
   Layers,
   type LucideIcon,
+  MapPin,
+  Megaphone,
+  Package,
   Settings,
+  ShieldCheck,
+  Store,
   Tractor,
+  UserCog,
   Users,
+  UsersRound,
+  Wallet,
+  Wheat,
 } from 'lucide-react';
 
 export type NavItem = {
@@ -30,6 +42,7 @@ export type NavEntry = NavItem | NavGroup;
 
 export type NavSection = {
   label?: string;
+  platformOnly?: boolean;
   entries: NavEntry[];
 };
 
@@ -57,6 +70,12 @@ export const NAV_SECTIONS: NavSection[] = [
             icon: Tractor,
             permission: ['persons.read', 'producers.read'],
           },
+          {
+            title: 'Revendas',
+            href: '/admin/resellers',
+            icon: Store,
+            permission: 'resellers.read',
+          },
         ],
       },
       {
@@ -64,10 +83,28 @@ export const NAV_SECTIONS: NavSection[] = [
         icon: Handshake,
         items: [
           {
+            title: 'Visitas',
+            href: '/admin/commercial-trips',
+            icon: MapPin,
+            permission: 'commercial-trips.read',
+          },
+          {
+            title: 'Ações comerciais',
+            href: '/admin/commercial-actions',
+            icon: Megaphone,
+            permission: 'commercial-actions.read',
+          },
+          {
             title: 'Eventos',
             href: '/admin/events',
             icon: CalendarDays,
             permission: 'events.read',
+          },
+          {
+            title: 'Carteiras',
+            href: '/admin/wallets',
+            icon: Wallet,
+            permission: 'wallets.read',
           },
         ],
       },
@@ -75,6 +112,12 @@ export const NAV_SECTIONS: NavSection[] = [
         title: 'Catálogo',
         icon: Boxes,
         items: [
+          {
+            title: 'Produtos',
+            href: '/admin/products',
+            icon: Package,
+            permission: 'products.read',
+          },
           {
             title: 'Grupos de produtos',
             href: '/admin/groups',
@@ -93,8 +136,36 @@ export const NAV_SECTIONS: NavSection[] = [
             icon: Gauge,
             permission: 'potentials.read',
           },
+          {
+            title: 'Equipe',
+            href: '/admin/members',
+            icon: UsersRound,
+            permission: 'members.read',
+          },
+          {
+            title: 'Cargos',
+            href: '/admin/roles',
+            icon: ShieldCheck,
+            permission: 'roles.read',
+          },
+          {
+            title: 'Empresa',
+            href: '/admin/company',
+            icon: Building2,
+            permission: 'company.update',
+          },
         ],
       },
+    ],
+  },
+  {
+    label: 'Plataforma',
+    platformOnly: true,
+    entries: [
+      { title: 'Empresas', href: '/admin/platform/companies', icon: Building },
+      { title: 'Usuários', href: '/admin/platform/users', icon: UserCog },
+      { title: 'Fabricantes', href: '/admin/platform/manufacturers', icon: Factory },
+      { title: 'Culturas', href: '/admin/platform/harvests', icon: Wheat },
     ],
   },
 ];
@@ -121,13 +192,18 @@ function getVisibleEntry(entry: NavEntry, permissions: string[]): NavEntry | nul
   return items.length > 0 ? { ...entry, items } : null;
 }
 
-export function getVisibleNavSections(permissions: string[]): NavSection[] {
-  return NAV_SECTIONS.map((section) => ({
-    ...section,
-    entries: section.entries
-      .map((entry) => getVisibleEntry(entry, permissions))
-      .filter((entry) => entry !== null),
-  })).filter((section) => section.entries.length > 0);
+export function getVisibleNavSections(
+  permissions: string[],
+  isPlatformAdmin: boolean,
+): NavSection[] {
+  return NAV_SECTIONS.filter((section) => !section.platformOnly || isPlatformAdmin)
+    .map((section) => ({
+      ...section,
+      entries: section.entries
+        .map((entry) => getVisibleEntry(entry, permissions))
+        .filter((entry) => entry !== null),
+    }))
+    .filter((section) => section.entries.length > 0);
 }
 
 export function isNavItemActive(pathname: string, href: string): boolean {

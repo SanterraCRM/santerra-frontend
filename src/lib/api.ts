@@ -29,6 +29,7 @@ type ApiRequestOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   token?: string;
+  signal?: AbortSignal;
 };
 
 type ApiErrorBody = {
@@ -40,21 +41,27 @@ type ApiErrorBody = {
 
 export async function apiRequest<T>(
   path: string,
-  { method = 'GET', body, token }: ApiRequestOptions = {},
+  { method = 'GET', body, token, signal }: ApiRequestOptions = {},
 ): Promise<T> {
   let response: Response;
+  const isJson = body !== undefined && !(body instanceof FormData);
 
   try {
     response = await fetch(`${API_URL}${path}`, {
       method,
       headers: {
-        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        ...(isJson ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: isJson ? JSON.stringify(body) : (body as FormData | undefined),
       cache: 'no-store',
+      signal,
     });
-  } catch {
+  } catch (error) {
+    if (signal?.aborted) {
+      throw error;
+    }
+
     throw new ApiError(
       'Não foi possível conectar ao servidor. Tente novamente em instantes.',
       0,

@@ -11,7 +11,7 @@ import { FormTextarea } from '@/components/form/form-textarea';
 import { useCreateEvent } from '@/hooks/events/use-create-event';
 import { useUpdateEvent } from '@/hooks/events/use-update-event';
 import { useReturnToList } from '@/hooks/use-return-to-list';
-import { getApiErrorMessage } from '@/lib/api';
+import { getApiErrorMessage, isApiErrorWithCode } from '@/lib/api';
 import { optionalTextSchema } from '@/lib/schemas';
 import type { Event } from '@/types/event';
 
@@ -43,6 +43,7 @@ export default function EventForm({ event }: EventFormProps) {
     control,
     handleSubmit,
     reset,
+    setError,
     formState: { isDirty, isSubmitting },
   } = useForm({
     resolver: zodResolver(eventFormSchema),
@@ -59,6 +60,11 @@ export default function EventForm({ event }: EventFormProps) {
         await createEvent(values);
       }
     } catch (error) {
+      if (isApiErrorWithCode(error, 'CONFLICT')) {
+        setError('name', { message: error.message }, { shouldFocus: true });
+        return;
+      }
+
       setErrorMessage(getApiErrorMessage(error, 'Não foi possível salvar agora. Tente novamente.'));
       return;
     }

@@ -23,6 +23,7 @@ type ModalProps = {
   onOpenChange?: (open: boolean) => void;
   actions?: ReactNode;
   cancelLabel?: string;
+  size?: 'default' | 'wide';
 };
 
 export function Modal({
@@ -34,12 +35,13 @@ export function Modal({
   onOpenChange,
   actions,
   cancelLabel = 'Cancelar',
+  size = 'default',
 }: ModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
 
-      <DialogContent>
+      <DialogContent className={size === 'wide' ? 'sm:max-w-3xl' : undefined}>
         <DialogHeader>
           <DialogTitle className='text-lg'>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}

@@ -22,6 +22,7 @@ import { useDeleteRecord } from '@/hooks/use-delete-record';
 import { getApiErrorMessage, isApiErrorWithCode } from '@/lib/api';
 
 export type DeleteDialogTexts = {
+  actionLabel?: string;
   title?: string;
   description: string;
   warning?: string;

@@ -4,7 +4,7 @@ import { ChevronDown, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { useState } from 'react';
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -180,13 +180,19 @@ type GroupToggle = {
 type AppSidebarProps = {
   companyName: string;
   permissions: string[];
+  isPlatformAdmin: boolean;
 };
 
-export function AppSidebar({ companyName, permissions }: AppSidebarProps) {
+export function AppSidebar({ companyName, permissions, isPlatformAdmin }: AppSidebarProps) {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const { isMobile, setOpenMobile, state } = useSidebar();
   const [groupToggles, setGroupToggles] = useState<Record<string, GroupToggle>>({});
-  const sections = getVisibleNavSections(permissions);
+  const sections = getVisibleNavSections(
+    session?.permissions ?? permissions,
+    session?.isPlatformAdmin ?? isPlatformAdmin,
+  );
+  const currentCompanyName = session?.company?.name ?? companyName;
   const showsOnlyIcons = state === 'collapsed' && !isMobile;
 
   function closeMobileMenu() {
@@ -231,7 +237,7 @@ export function AppSidebar({ companyName, permissions }: AppSidebarProps) {
                   <span className='truncate text-base font-bold tracking-tight text-foreground'>
                     WebUp!
                   </span>
-                  <span className='truncate text-xs text-muted-foreground'>{companyName}</span>
+                  <span className='truncate text-xs text-muted-foreground'>{currentCompanyName}</span>
                 </span>
               </Link>
             </SidebarMenuButton>

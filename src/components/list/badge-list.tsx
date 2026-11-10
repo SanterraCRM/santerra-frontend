@@ -10,7 +10,7 @@ export function BadgeList({ labels }: BadgeListProps) {
   }
 
   return (
-    <div className='flex gap-1'>
+    <span className='flex flex-wrap gap-1'>
       {labels.map((label) => (
         <Badge
           key={label}
@@ -20,6 +20,6 @@ export function BadgeList({ labels }: BadgeListProps) {
           {label}
         </Badge>
       ))}
-    </div>
+    </span>
   );
 }

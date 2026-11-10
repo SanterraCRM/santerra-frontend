@@ -17,6 +17,7 @@ declare module 'next-auth' {
     company: SessionCompany | null;
     companies: SessionCompany[];
     permissions: string[];
+    isPlatformAdmin: boolean;
   }
 
   interface User {
@@ -25,6 +26,7 @@ declare module 'next-auth' {
     company: SessionCompany | null;
     companies: SessionCompany[];
     permissions: string[];
+    isPlatformAdmin: boolean;
   }
 }
 
@@ -36,5 +38,7 @@ declare module 'next-auth/jwt' {
     company: SessionCompany | null;
     companies: SessionCompany[];
     permissions: string[];
+    isPlatformAdmin?: boolean;
+    sessionCheckedAt?: number;
   }
 }

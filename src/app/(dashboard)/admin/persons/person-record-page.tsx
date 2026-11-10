@@ -5,15 +5,19 @@ import { Fragment, type ReactNode } from 'react';
 
 import { DeleteRecordButton } from '@/components/crud/delete-record-button';
 import { RecordDetails } from '@/components/crud/record-details';
+import { RelatedRecords } from '@/components/crud/related-records';
 import { RecordPageLayout } from '@/components/layout/record-page-layout';
 import { apiRequest, getRecordOrNotFound } from '@/lib/api';
 import { authOptions } from '@/lib/auth';
 import { formatDate, formatDecimal, formatNationalId, formatPhone } from '@/lib/format';
 import { hasPermission, requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
+import type { CommercialTrip } from '@/types/commercial-trip';
 import type { Member } from '@/types/member';
 import type { Person } from '@/types/person';
 import type { Potential } from '@/types/potential';
+
+import { COMMERCIAL_TRIPS_HREF, toTripRecords } from '../commercial-trips/commercial-trips-config';
 
 import EmployeeForm from './employee-form';
 import PersonForm from './person-form';
@@ -27,6 +31,8 @@ import {
   PRODUCER_UNLINK_TEXTS,
 } from './persons-config';
 import ProducerForm from './producer-form';
+
+const RELATED_TRIPS_LIMIT = 5;
 
 type PersonRecordParams = Promise<{ id: string }>;
 
@@ -74,12 +80,25 @@ export async function PersonRecordPage({ section, params }: PersonRecordPageProp
     can('potentials.read') &&
     (producer ? can('producers.update') : !isProducer && can('producers.create'));
 
-  const [potentials, members] = await Promise.all([
+  const canReadTrips = can('commercial-trips.read');
+  const [potentials, members, producerTrips, employeeTrips] = await Promise.all([
     canEditProducer
       ? apiRequest<Paginated<Potential>>('/potentials?limit=100', { token: session.accessToken })
       : null,
     canEditEmployee && can('members.read')
       ? apiRequest<Paginated<Member>>('/members?limit=100', { token: session.accessToken })
+      : null,
+    canReadTrips && producer
+      ? apiRequest<Paginated<CommercialTrip>>(
+          `/commercial-trips?producerId=${producer.id}&limit=${RELATED_TRIPS_LIMIT}`,
+          { token: session.accessToken },
+        )
+      : null,
+    canReadTrips && employee
+      ? apiRequest<Paginated<CommercialTrip>>(
+          `/commercial-trips?responsibleId=${employee.id}&limit=${RELATED_TRIPS_LIMIT}`,
+          { token: session.accessToken },
+        )
       : null,
   ]);
   const potentialOptions = potentials?.data.map(({ id: value, name }) => ({ id: value, name })) ?? [];
@@ -237,6 +256,30 @@ export async function PersonRecordPage({ section, params }: PersonRecordPageProp
       {linkSections.map(({ key, content }) => (
         <Fragment key={key}>{content}</Fragment>
       ))}
+
+      {producer && producerTrips && (
+        <RelatedRecords
+          title='Visitas ao produtor'
+          description='As visitas mais recentes a este produtor.'
+          records={toTripRecords(producerTrips.data, 'producer')}
+          total={producerTrips.meta.total}
+          emptyMessage='Nenhuma visita a este produtor.'
+          viewAllHref={`${COMMERCIAL_TRIPS_HREF}?producerId=${producer.id}`}
+          viewAllLabel='Ver todas'
+        />
+      )}
+
+      {employee && employeeTrips && (
+        <RelatedRecords
+          title='Visitas sob responsabilidade'
+          description='As visitas mais recentes em que este funcionário é o responsável.'
+          records={toTripRecords(employeeTrips.data, 'responsible')}
+          total={employeeTrips.meta.total}
+          emptyMessage='Nenhuma visita sob a responsabilidade deste funcionário.'
+          viewAllHref={`${COMMERCIAL_TRIPS_HREF}?responsibleId=${employee.id}`}
+          viewAllLabel='Ver todas'
+        />
+      )}
     </RecordPageLayout>
   );
 }

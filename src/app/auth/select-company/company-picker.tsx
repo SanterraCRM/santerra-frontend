@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 import { AuthHeader } from '@/components/auth/auth-header';
 import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { BuildingIcon, ChevronRightIcon } from '@/components/ui/icons';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectCompany } from '@/hooks/auth/use-select-company';
@@ -15,6 +16,7 @@ type CompanyPickerProps = {
   userName: string;
   companies: Session['companies'];
   currentCompanyId: string | null;
+  isPlatformAdmin: boolean;
   callbackUrl: string;
 };
 
@@ -22,6 +24,7 @@ export default function CompanyPicker({
   userName,
   companies,
   currentCompanyId,
+  isPlatformAdmin,
   callbackUrl,
 }: CompanyPickerProps) {
   const { mutate: selectCompany } = useSelectCompany();
@@ -44,12 +47,51 @@ export default function CompanyPicker({
     window.location.assign(callbackUrl);
   }
 
+  if (companies.length === 0) {
+    return (
+      <>
+        <AuthHeader
+          icon={<BuildingIcon className='size-7' />}
+          title='Você ainda não faz parte de nenhuma empresa'
+          description={`Olá, ${firstName}! Crie a sua empresa para começar a usar o sistema.`}
+        />
+
+        <div className='flex flex-col gap-4 animate-fade-up [animation-delay:80ms]'>
+          <Button href='/auth/create-company' size='xl' className='w-full'>
+            Criar empresa
+          </Button>
+          {isPlatformAdmin && (
+            <Button
+              href='/admin/platform/manufacturers'
+              variant='outline'
+              size='xl'
+              className='w-full'
+            >
+              Ir para a área da plataforma
+            </Button>
+          )}
+          <p className='text-center text-sm text-slate-500'>
+            Foi convidado? Use o link do e-mail do convite.
+          </p>
+        </div>
+
+        <button
+          type='button'
+          onClick={() => signOut({ callbackUrl: '/auth/login' })}
+          className='mx-auto mt-8 block rounded-lg px-2 py-1 text-sm font-semibold text-slate-500 transition hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40'
+        >
+          Sair
+        </button>
+      </>
+    );
+  }
+
   return (
     <>
       <AuthHeader
         icon={<BuildingIcon className='size-7' />}
         title='Escolha a empresa'
-        description={`Olá, ${firstName}! Sua conta tem acesso a mais de uma empresa. Qual você quer acessar agora?`}
+        description={`Olá, ${firstName}! Qual empresa você quer acessar agora?`}
       />
 
       <div className='flex flex-col gap-4 animate-fade-up [animation-delay:80ms]'>
@@ -86,6 +128,10 @@ export default function CompanyPicker({
             </li>
           ))}
         </ul>
+
+        <Button href='/auth/create-company' variant='outline' size='xl' className='w-full'>
+          Criar nova empresa
+        </Button>
       </div>
 
       <button

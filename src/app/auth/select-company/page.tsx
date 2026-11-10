@@ -29,6 +29,7 @@ export default async function SelectCompanyPage({ searchParams }: SelectCompanyP
       userName={session.user.name}
       companies={session.companies}
       currentCompanyId={session.company?.id ?? null}
+      isPlatformAdmin={session.isPlatformAdmin}
       callbackUrl={getSafeCallbackUrl(callbackUrl)}
     />
   );

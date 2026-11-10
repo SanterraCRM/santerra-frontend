@@ -12,26 +12,34 @@ import { cn } from '@/lib/cn';
 
 type RecordDetailsField = {
   label: string;
-  value?: string | null;
+  value?: ReactNode;
   wide?: boolean;
 };
 
 type RecordDetailsProps = {
   title: string;
   fields: RecordDetailsField[];
+  description?: string;
   action?: ReactNode;
+  children?: ReactNode;
 };
 
-export function RecordDetails({ title, fields, action }: RecordDetailsProps) {
+export function RecordDetails({
+  title,
+  fields,
+  description = 'Você tem permissão apenas para visualizar este cadastro.',
+  action,
+  children,
+}: RecordDetailsProps) {
   return (
     <Card className='animate-fade-up [animation-delay:80ms]'>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
-        <CardDescription>Você tem permissão apenas para visualizar este cadastro.</CardDescription>
+        <CardDescription>{description}</CardDescription>
         {action && <CardAction>{action}</CardAction>}
       </CardHeader>
 
-      <CardContent>
+      <CardContent className='flex flex-col gap-6'>
         <dl className='grid gap-5 sm:grid-cols-2'>
           {fields.map(({ label, value, wide }) => (
             <div key={label} className={cn('flex min-w-0 flex-col gap-1', wide && 'sm:col-span-2')}>
@@ -47,6 +55,7 @@ export function RecordDetails({ title, fields, action }: RecordDetailsProps) {
             </div>
           ))}
         </dl>
+        {children}
       </CardContent>
     </Card>
   );

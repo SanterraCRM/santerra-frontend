@@ -4,10 +4,12 @@ import { Funnel } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, useState, useTransition } from 'react';
 
+import { AsyncCombobox } from '@/components/form/async-combobox';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { MoneyInput } from '@/components/ui/money-input';
 import {
   Popover,
   PopoverContent,
@@ -22,7 +24,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { type FilterDefinition, type FilterValues, getFilterKeys } from '@/lib/list-filters';
+import type { ComboboxOption } from '@/lib/combobox-sources';
+import { toMoneyInputValue, toMoneyParam } from '@/lib/format';
+import {
+  type FilterDefinition,
+  type FilterValues,
+  getFilterKeys,
+  isRangeFilter,
+  type RangeFilterDefinition,
+} from '@/lib/list-filters';
 import { toHref } from '@/lib/list-params';
 
 const ALL_OPTIONS = 'all';
@@ -32,6 +42,80 @@ type FilterFieldProps = {
   values: FilterValues;
   onChange: (key: string, value: string) => void;
 };
+
+type SearchFilterFieldProps = Omit<FilterFieldProps, 'filter'> & {
+  filter: Extract<FilterDefinition, { type: 'search' }>;
+};
+
+function SearchFilterField({ filter, values, onChange }: SearchFilterFieldProps) {
+  const [selected, setSelected] = useState<ComboboxOption | null>(filter.selected);
+  const id = `filter-${filter.key}`;
+
+  return (
+    <Field>
+      <FieldLabel htmlFor={id}>{filter.label}</FieldLabel>
+      <AsyncCombobox
+        id={id}
+        source={filter.source}
+        value={values[filter.key] && selected ? [selected] : []}
+        emptyOption='Todos'
+        onChange={(next) => {
+          setSelected(next[0] ?? null);
+          onChange(filter.key, next[0]?.value ?? '');
+        }}
+      />
+    </Field>
+  );
+}
+
+type RangeFilterFieldProps = Omit<FilterFieldProps, 'filter'> & {
+  filter: RangeFilterDefinition;
+};
+
+function RangeFilterField({ filter, values, onChange }: RangeFilterFieldProps) {
+  const from = values[filter.fromKey];
+  const to = values[filter.toKey];
+  const bounds = [
+    { key: filter.fromKey, label: 'De', min: undefined, max: to || undefined },
+    { key: filter.toKey, label: 'Até', min: from || undefined, max: undefined },
+  ];
+
+  return (
+    <FieldSet className='gap-0'>
+      <FieldLegend variant='label'>{filter.label}</FieldLegend>
+      <div className='grid grid-cols-2 gap-2'>
+        {bounds.map((bound) => {
+          const id = `filter-${bound.key}`;
+          const value = values[bound.key];
+
+          return (
+            <Field key={bound.key} className='gap-1.5'>
+              <FieldLabel htmlFor={id} className='text-xs text-muted-foreground'>
+                {bound.label}
+              </FieldLabel>
+              {filter.type === 'dateRange' ? (
+                <Input
+                  id={id}
+                  type='date'
+                  value={value}
+                  min={bound.min}
+                  max={bound.max}
+                  onChange={(event) => onChange(bound.key, event.target.value)}
+                />
+              ) : (
+                <MoneyInput
+                  id={id}
+                  value={value ? toMoneyInputValue(Number(value)) : ''}
+                  onValueChange={(masked) => onChange(bound.key, toMoneyParam(masked))}
+                />
+              )}
+            </Field>
+          );
+        })}
+      </div>
+    </FieldSet>
+  );
+}
 
 function FilterField({ filter, values, onChange }: FilterFieldProps) {
   if (filter.type === 'select') {
@@ -60,44 +144,12 @@ function FilterField({ filter, values, onChange }: FilterFieldProps) {
     );
   }
 
-  if (filter.type === 'dateRange') {
-    const from = values[filter.fromKey];
-    const to = values[filter.toKey];
+  if (isRangeFilter(filter)) {
+    return <RangeFilterField filter={filter} values={values} onChange={onChange} />;
+  }
 
-    return (
-      <FieldSet className='gap-0'>
-        <FieldLegend variant='label'>{filter.label}</FieldLegend>
-        <div className='grid grid-cols-2 gap-2'>
-          <Field className='gap-1.5'>
-            <FieldLabel
-              htmlFor={`filter-${filter.fromKey}`}
-              className='text-xs text-muted-foreground'
-            >
-              De
-            </FieldLabel>
-            <Input
-              id={`filter-${filter.fromKey}`}
-              type='date'
-              value={from}
-              max={to || undefined}
-              onChange={(event) => onChange(filter.fromKey, event.target.value)}
-            />
-          </Field>
-          <Field className='gap-1.5'>
-            <FieldLabel htmlFor={`filter-${filter.toKey}`} className='text-xs text-muted-foreground'>
-              Até
-            </FieldLabel>
-            <Input
-              id={`filter-${filter.toKey}`}
-              type='date'
-              value={to}
-              min={from || undefined}
-              onChange={(event) => onChange(filter.toKey, event.target.value)}
-            />
-          </Field>
-        </div>
-      </FieldSet>
-    );
+  if (filter.type === 'search') {
+    return <SearchFilterField filter={filter} values={values} onChange={onChange} />;
   }
 
   const { key, options } = filter;
@@ -224,7 +276,7 @@ export function ListFilters({ filters, values }: ListFiltersProps) {
           <div className='flex flex-col gap-5 p-4'>
             {filters.map((filter) => (
               <FilterField
-                key={filter.type === 'dateRange' ? filter.fromKey : filter.key}
+                key={isRangeFilter(filter) ? filter.fromKey : filter.key}
                 filter={filter}
                 values={draft}
                 onChange={setValue}
