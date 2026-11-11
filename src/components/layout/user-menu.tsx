@@ -16,6 +16,7 @@ import {
 import { cn } from '@/lib/cn';
 import { getInitials } from '@/lib/initials';
 
+import { CompanyLogo } from './company-logo';
 import { ACCOUNT_NAV_ITEM } from './nav-items';
 
 const { href: ACCOUNT_HREF, icon: AccountIcon, title: ACCOUNT_TITLE } = ACCOUNT_NAV_ITEM;
@@ -48,6 +49,7 @@ export function UserMenu(props: UserMenuProps) {
   const { data: session } = useSession();
   const userName = session?.user.name ?? props.userName;
   const email = session?.user.email ?? props.email;
+  const company = session?.company ?? null;
   const companyName =
     session?.company?.name ?? (props.companyName || 'Nenhuma empresa selecionada');
   const canSwitchCompany = session ? session.companies.length > 1 : props.canSwitchCompany;
@@ -85,7 +87,11 @@ export function UserMenu(props: UserMenuProps) {
         <DropdownMenuSeparator />
 
         <DropdownMenuLabel className='flex items-center gap-2'>
-          <Building2 className='size-4 shrink-0' />
+          {company?.logo ? (
+            <CompanyLogo company={company} size='sm' />
+          ) : (
+            <Building2 className='size-4 shrink-0' />
+          )}
           <span className='truncate'>{companyName}</span>
         </DropdownMenuLabel>
 

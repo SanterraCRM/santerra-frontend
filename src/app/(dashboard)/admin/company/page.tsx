@@ -8,6 +8,7 @@ import { requireSession } from '@/lib/session';
 import type { Company } from '@/types/company';
 
 import CompanyForm from './company-form';
+import CompanyLogoCard from './company-logo-card';
 
 export const metadata: Metadata = {
   title: 'Empresa',
@@ -26,6 +27,7 @@ export default async function CompanyPage() {
       description={`Os dados da empresa aparecem no menu e no topo para toda a equipe. Empresa criada em ${formatDate(company.createdAt, 'long')}.`}
     >
       <CompanyForm company={company} />
+      <CompanyLogoCard company={company} />
     </RecordPageLayout>
   );
 }

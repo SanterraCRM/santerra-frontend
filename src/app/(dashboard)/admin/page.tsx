@@ -113,7 +113,7 @@ export default async function AdminPage() {
       <AccountOverview
         userName={session.user.name}
         email={session.user.email}
-        companyName={session.company?.name ?? ''}
+        company={session.company}
         companyCount={session.companies.length}
       />
     </div>

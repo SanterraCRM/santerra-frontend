@@ -2,6 +2,7 @@ export type PlatformCompany = {
   id: string;
   name: string;
   description: string | null;
+  logo: string | null;
   owner: { id: string; name: string; email: string } | null;
   membersCount: number;
   createdAt: string;

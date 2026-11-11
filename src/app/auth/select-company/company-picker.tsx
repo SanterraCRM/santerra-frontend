@@ -5,12 +5,12 @@ import { signOut } from 'next-auth/react';
 import { useState } from 'react';
 
 import { AuthHeader } from '@/components/auth/auth-header';
+import { CompanyLogo } from '@/components/layout/company-logo';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { BuildingIcon, ChevronRightIcon } from '@/components/ui/icons';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectCompany } from '@/hooks/auth/use-select-company';
-import { getInitials } from '@/lib/initials';
 
 type CompanyPickerProps = {
   userName: string;
@@ -106,9 +106,7 @@ export default function CompanyPicker({
                 onClick={() => handleSelectCompany(company.id)}
                 className='group flex w-full items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-600/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20 disabled:pointer-events-none disabled:opacity-60'
               >
-                <span className='flex size-12 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-brand-400 to-brand-600 text-base font-bold text-white shadow-md shadow-brand-600/20'>
-                  {getInitials(company.name)}
-                </span>
+                <CompanyLogo company={company} size='lg' className='shadow-md shadow-brand-600/20' />
 
                 <span className='min-w-0 flex-1'>
                   <span className='block truncate text-[15px] font-semibold text-slate-900'>
