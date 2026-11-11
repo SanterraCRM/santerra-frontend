@@ -30,6 +30,7 @@ type FormCardProps = FormCardCancel & {
   isSubmitting: boolean;
   onDiscard: () => void;
   createLabel: string;
+  saveLabel?: string;
 };
 
 export function FormCard({
@@ -46,6 +47,7 @@ export function FormCard({
   cancelHref,
   onCancel,
   createLabel,
+  saveLabel = 'Salvar alterações',
 }: FormCardProps) {
   return (
     <form noValidate onSubmit={onSubmit} className='animate-fade-up [animation-delay:80ms]'>
@@ -89,7 +91,7 @@ export function FormCard({
             loading={isSubmitting}
             loadingText='Salvando...'
           >
-            {isEditing ? 'Salvar alterações' : createLabel}
+            {isEditing ? saveLabel : createLabel}
           </Button>
         </CardFooter>
       </Card>
