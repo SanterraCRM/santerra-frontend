@@ -38,7 +38,7 @@ type DataTableProps<T extends { id: string }> = {
     header: string;
     title: (row: T) => string;
     subtitle?: (row: T) => ReactNode;
-    avatar?: boolean;
+    avatar?: boolean | ((row: T) => ReactNode);
   };
   columns: DataTableColumn<T>[];
   actions: {
@@ -92,13 +92,15 @@ export function DataTable<T extends { id: string }>({
               <>
                 <TableCell className='w-full max-w-0 px-4 py-3'>
                   <div className='flex items-center gap-3'>
-                    {primary.avatar && (
-                      <Avatar className='size-9'>
-                        <AvatarFallback className='bg-brand-50 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300'>
-                          {getInitials(title)}
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
+                    {typeof primary.avatar === 'function'
+                      ? primary.avatar(row)
+                      : primary.avatar && (
+                          <Avatar className='size-9'>
+                            <AvatarFallback className='bg-brand-50 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300'>
+                              {getInitials(title)}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
                     <div className='min-w-0'>
                       {href ? (
                         <Link

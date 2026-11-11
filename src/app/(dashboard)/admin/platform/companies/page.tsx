@@ -2,6 +2,7 @@ import { Building, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
+import { CompanyLogo } from '@/components/layout/company-logo';
 import { PageHeader } from '@/components/layout/page-header';
 import { DataTable } from '@/components/list/data-table';
 import { ListEmptyState } from '@/components/list/list-empty-state';
@@ -67,7 +68,7 @@ export default async function PlatformCompaniesPage({ searchParams }: PlatformCo
           header: 'Empresa',
           title: (company) => company.name,
           subtitle: (company) => company.description ?? 'Sem descrição',
-          avatar: true,
+          avatar: (company) => <CompanyLogo company={company} />,
         }}
         columns={[
           {
