@@ -8,9 +8,14 @@ const SIGN_UP_PATH = '/auth/sign-up';
 const SELECT_COMPANY_PATH = '/auth/select-company';
 const CREATE_COMPANY_PATH = '/auth/create-company';
 const PLATFORM_PATH = '/admin/platform';
+const ACCOUNT_PATH = '/admin/account';
 
 function isPlatformPath(pathname: string): boolean {
   return pathname === PLATFORM_PATH || pathname.startsWith(`${PLATFORM_PATH}/`);
+}
+
+function canOpenWithoutCompany(pathname: string, isPlatformAdmin: boolean): boolean {
+  return pathname === ACCOUNT_PATH || (isPlatformAdmin && isPlatformPath(pathname));
 }
 
 function redirectWithCallback(request: NextRequest, path: string) {
@@ -53,7 +58,7 @@ export async function proxy(request: NextRequest) {
     return redirectWithCallback(request, LOGIN_PATH);
   }
 
-  if (!hasCompany && !(token?.isPlatformAdmin === true && isPlatformPath(pathname))) {
+  if (!hasCompany && !canOpenWithoutCompany(pathname, token?.isPlatformAdmin === true)) {
     return redirectWithCallback(request, SELECT_COMPANY_PATH);
   }
 

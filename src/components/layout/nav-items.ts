@@ -4,6 +4,7 @@ import {
   Building,
   Building2,
   CalendarDays,
+  CircleUserRound,
   Contact,
   Factory,
   Gauge,
@@ -174,9 +175,18 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
   return 'items' in entry;
 }
 
-export const NAV_ITEMS: NavItem[] = NAV_SECTIONS.flatMap((section) =>
-  section.entries.flatMap((entry) => (isNavGroup(entry) ? entry.items : [entry])),
-);
+export const ACCOUNT_NAV_ITEM: NavItem = {
+  title: 'Minha conta',
+  href: '/admin/account',
+  icon: CircleUserRound,
+};
+
+export const NAV_ITEMS: NavItem[] = [
+  ...NAV_SECTIONS.flatMap((section) =>
+    section.entries.flatMap((entry) => (isNavGroup(entry) ? entry.items : [entry])),
+  ),
+  ACCOUNT_NAV_ITEM,
+];
 
 function hasEveryPermission(granted: string[], required: NavItem['permission']): boolean {
   return [required ?? []].flat().every((permission) => granted.includes(permission));

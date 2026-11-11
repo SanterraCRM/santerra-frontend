@@ -16,6 +16,10 @@ import {
 import { cn } from '@/lib/cn';
 import { getInitials } from '@/lib/initials';
 
+import { ACCOUNT_NAV_ITEM } from './nav-items';
+
+const { href: ACCOUNT_HREF, icon: AccountIcon, title: ACCOUNT_TITLE } = ACCOUNT_NAV_ITEM;
+
 type UserAvatarProps = {
   name: string;
   className?: string;
@@ -70,6 +74,13 @@ export function UserMenu(props: UserMenuProps) {
             <span className='truncate text-xs text-muted-foreground'>{email}</span>
           </span>
         </DropdownMenuLabel>
+
+        <DropdownMenuItem asChild>
+          <Link href={ACCOUNT_HREF}>
+            <AccountIcon />
+            {ACCOUNT_TITLE}
+          </Link>
+        </DropdownMenuItem>
 
         <DropdownMenuSeparator />
 
