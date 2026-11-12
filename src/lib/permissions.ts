@@ -38,6 +38,7 @@ export const PERMISSION_RESOURCE_GROUPS: PermissionResourceGroup[] = [
       { key: 'commercial-actions', label: 'Ações comerciais' },
       { key: 'events', label: 'Eventos' },
       { key: 'wallets', label: 'Carteiras' },
+      { key: 'goals', label: 'Metas' },
     ],
   },
   {

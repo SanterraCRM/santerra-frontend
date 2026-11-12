@@ -76,6 +76,13 @@ export const optionalDateSchema = z
   .string()
   .transform((value) => (value ? toDayBoundary(value, 'start') : null));
 
+export function requiredDateSchema(message: string) {
+  return z
+    .string()
+    .min(1, message)
+    .transform((value) => toDayBoundary(value, 'start'));
+}
+
 export function createPasswordConfirmationSchema(confirmationMessage: string) {
   return z
     .object({

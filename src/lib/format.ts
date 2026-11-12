@@ -23,6 +23,17 @@ const decimalFormatter = new Intl.NumberFormat('pt-BR', {
 
 const currencyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
+const compactCurrencyFormatter = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
+
+const COMPACT_CURRENCY_FROM = 1000;
+
+const INTEGER_MAX_DIGITS = 9;
+
 const percentFormatter = new Intl.NumberFormat('pt-BR', {
   style: 'percent',
   maximumFractionDigits: 1,
@@ -36,6 +47,16 @@ export function onlyDigits(value: string): string {
 
 export function formatCurrency(value: number): string {
   return currencyFormatter.format(value);
+}
+
+export function formatCompactCurrency(value: number): string {
+  return Math.abs(value) < COMPACT_CURRENCY_FROM
+    ? currencyFormatter.format(value)
+    : compactCurrencyFormatter.format(value);
+}
+
+export function maskInteger(value: string): string {
+  return onlyDigits(value).replace(/^0+(?=\d)/, '').slice(0, INTEGER_MAX_DIGITS);
 }
 
 export function maskMoney(value: string): string {
