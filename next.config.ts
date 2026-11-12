@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  agentRules: false,
+  // O canto inferior esquerdo é ocupado pelo botão "Sair" do menu lateral.
+  devIndicators: {
+    position: "bottom-right",
+  },
 };
 
 export default nextConfig;

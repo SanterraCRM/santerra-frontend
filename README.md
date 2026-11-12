@@ -1,6 +1,6 @@
-# Santerra — Frontend
+# WebUp! — Frontend
 
-Interface web do Sistema de Gestão Comercial da Santerra.
+Interface web do Sistema de Gestão Comercial da WebUp!
 
 O frontend é responsável pela visualização e gerenciamento das informações de produtores, revendas, ações comerciais, metas e indicadores do sistema.
 
@@ -40,10 +40,12 @@ cd <NOME_DO_REPOSITORIO>
 yarn
 ```
 
-Configure as variáveis de ambiente criando um arquivo `.env`:
+Configure as variáveis de ambiente copiando o `.env.example` para `.env.local` e preenchendo os valores:
 
 ```env
-NEXT_PUBLIC_API_URL="http://localhost:3333"
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=<gere com: node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))">
+NEXT_PUBLIC_API_URL=http://localhost:7777
 ```
 
 ## Executando
@@ -80,4 +82,4 @@ Em desenvolvimento.
 
 Projeto Integrador — Sistema Web
 Engenharia de Software — UNISATC
-Santerra — Criciúma/SC
+WebUp! — Criciúma/SC
