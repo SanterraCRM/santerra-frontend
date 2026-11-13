@@ -50,6 +50,7 @@ export const comboboxOptionSchema = z.object({
   value: z.string(),
   label: z.string(),
   description: z.string().optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
 });
 
 export function requiredOptionSchema(message: string) {
@@ -58,6 +59,10 @@ export function requiredOptionSchema(message: string) {
     .refine((option) => option !== null, message)
     .transform((option) => option?.value ?? '');
 }
+
+export const optionalOptionSchema = comboboxOptionSchema
+  .nullable()
+  .transform((option) => option?.value ?? null);
 
 export const optionIdsSchema = z
   .array(comboboxOptionSchema)

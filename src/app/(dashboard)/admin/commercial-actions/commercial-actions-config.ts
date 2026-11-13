@@ -3,28 +3,38 @@ import type { RelatedRecord } from '@/components/crud/related-records';
 import type { ListEmptyStateTexts } from '@/components/list/list-empty-state';
 import type { ComboboxOption } from '@/lib/combobox-sources';
 import { formatCurrency, formatDate } from '@/lib/format';
-import type { FilterDefinition, FilterOption } from '@/lib/list-filters';
+import type { FilterDefinition } from '@/lib/list-filters';
 import type { CommercialAction, CommercialActionRelation } from '@/types/commercial-action';
 
 export const COMMERCIAL_ACTIONS_HREF = '/admin/commercial-actions';
 
 type ActionFilterOptions = {
-  events: FilterOption[] | null;
-  wallets: FilterOption[] | null;
+  event: ComboboxOption | null;
+  wallet: ComboboxOption | null;
   responsible: ComboboxOption | null;
+  canSearchEvents: boolean;
+  canSearchWallets: boolean;
   canSearchEmployees: boolean;
 };
 
 export function getActionFilters({
-  events,
-  wallets,
+  event,
+  wallet,
   responsible,
+  canSearchEvents,
+  canSearchWallets,
   canSearchEmployees,
 }: ActionFilterOptions): FilterDefinition[] {
   const filters: FilterDefinition[] = [];
 
-  if (events && events.length > 0) {
-    filters.push({ type: 'select', key: 'eventId', label: 'Evento', options: events });
+  if (canSearchEvents) {
+    filters.push({
+      type: 'search',
+      key: 'eventId',
+      label: 'Evento',
+      source: 'events',
+      selected: event,
+    });
   }
 
   if (canSearchEmployees) {
@@ -37,8 +47,14 @@ export function getActionFilters({
     });
   }
 
-  if (wallets && wallets.length > 0) {
-    filters.push({ type: 'select', key: 'walletId', label: 'Carteira', options: wallets });
+  if (canSearchWallets) {
+    filters.push({
+      type: 'search',
+      key: 'walletId',
+      label: 'Carteira',
+      source: 'wallets',
+      selected: wallet,
+    });
   }
 
   filters.push({ type: 'dateRange', label: 'Início', fromKey: 'initialFrom', toKey: 'initialTo' });

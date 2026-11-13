@@ -11,13 +11,12 @@ import { FormFileAttachments } from '@/components/form/form-file-attachments';
 import { FormInput } from '@/components/form/form-input';
 import { FormMoneyInput } from '@/components/form/form-money-input';
 import { FormSection } from '@/components/form/form-section';
-import { FormSelect } from '@/components/form/form-select';
 import { FormTextarea } from '@/components/form/form-textarea';
 import { useCreateCommercialAction } from '@/hooks/commercial-actions/use-create-commercial-action';
 import { useUpdateCommercialAction } from '@/hooks/commercial-actions/use-update-commercial-action';
 import { useReturnToList } from '@/hooks/use-return-to-list';
 import { getApiErrorMessage, isApiErrorWithCode } from '@/lib/api';
-import type { ComboboxOption } from '@/lib/combobox-sources';
+import { type ComboboxOption, getWalletBalance } from '@/lib/combobox-sources';
 import { formatCurrency, toDateInputValue, toMoneyInputValue } from '@/lib/format';
 import {
   optionalDateSchema,
@@ -38,12 +37,12 @@ import { COMMERCIAL_ACTIONS_HREF } from './commercial-actions-config';
 
 const actionFormSchema = z
   .object({
-    eventId: z.string().min(1, 'Selecione o evento'),
+    eventId: requiredOptionSchema('Selecione o evento'),
     description: optionalTextSchema,
     initialDate: optionalDateSchema,
     finalDate: optionalDateSchema,
     invoiceNumber: optionalTextSchema,
-    walletId: z.string().min(1, 'Selecione a carteira'),
+    walletId: requiredOptionSchema('Selecione a carteira'),
     price: optionalMoneySchema,
     producerGuests: optionIdsSchema,
     resellerGuests: optionIdsSchema,
@@ -63,14 +62,17 @@ function toOption({ id, name }: CommercialActionRelation): ComboboxOption {
   return { value: id, label: name };
 }
 
-function toFormValues(action?: CommercialAction): ActionFormInput {
+function toFormValues(
+  action: CommercialAction | undefined,
+  currentWallet: ComboboxOption | null,
+): ActionFormInput {
   return {
-    eventId: action?.eventId ?? '',
+    eventId: action ? toOption(action.event) : null,
     description: action?.description ?? '',
     initialDate: action?.initialDate ? toDateInputValue(action.initialDate) : '',
     finalDate: action?.finalDate ? toDateInputValue(action.finalDate) : '',
     invoiceNumber: action?.invoiceNumber ?? '',
-    walletId: action?.walletId ?? '',
+    walletId: currentWallet ?? (action ? toOption(action.wallet) : null),
     price: action?.price == null ? '' : toMoneyInputValue(action.price),
     producerGuests: action?.producerGuests.map(toOption) ?? [],
     resellerGuests: action?.resellerGuests.map(toOption) ?? [],
@@ -80,18 +82,16 @@ function toFormValues(action?: CommercialAction): ActionFormInput {
   };
 }
 
-function withCurrent<T extends { id: string }>(items: T[], current: T | null): T[] {
-  return current && !items.some((item) => item.id === current.id) ? [...items, current] : items;
-}
-
 type CommercialActionFormProps = ActionFormOptions & {
   action?: CommercialAction;
+  currentWallet?: ComboboxOption | null;
 };
 
 export default function CommercialActionForm({
   action,
-  events,
-  wallets,
+  currentWallet = null,
+  hasEvents,
+  hasWallets,
   canSearchProducers,
   canSearchResellers,
   canSearchEmployees,
@@ -112,26 +112,17 @@ export default function CommercialActionForm({
     formState: { isDirty, isSubmitting },
   } = useForm({
     resolver: zodResolver(actionFormSchema),
-    defaultValues: toFormValues(action),
+    defaultValues: toFormValues(action, currentWallet),
   });
-  const [walletId, initialDate, responsible] = useWatch({
+  const [wallet, initialDate, responsible] = useWatch({
     control,
     name: ['walletId', 'initialDate', 'responsible'],
   });
-  const eventOptions = withCurrent(events, action ? action.event : null).map(({ id, name }) => ({
-    value: id,
-    label: name,
-  }));
-  const walletOptions = withCurrent(
-    wallets,
-    action ? { id: action.walletId, name: action.wallet.name, balance: 0 } : null,
-  );
-  const selectedWallet = walletOptions.find((wallet) => wallet.id === walletId);
+  const walletBalance = getWalletBalance(wallet);
   const reservedCents =
-    action && action.walletId === walletId ? Math.round((action.price ?? 0) * 100) : 0;
-  const availableCents = selectedWallet
-    ? Math.round(selectedWallet.balance * 100) + reservedCents
-    : null;
+    action && action.walletId === wallet?.value ? Math.round((action.price ?? 0) * 100) : 0;
+  const availableCents =
+    walletBalance === null ? null : Math.round(walletBalance * 100) + reservedCents;
 
   function removeResponsibleFromParticipants(next: ComboboxOption[]) {
     const responsibleId = next[0]?.value;
@@ -201,15 +192,16 @@ export default function CommercialActionForm({
     >
       <div className='flex flex-col gap-6'>
         <FormSection title='Dados gerais' description='Evento, descrição, período e nota fiscal.'>
-          <FormSelect
+          <FormAsyncCombobox
             control={control}
             name='eventId'
             label='Evento'
             required
-            options={eventOptions}
+            source='events'
             placeholder='Selecione o evento'
-            disabled={eventOptions.length === 0}
-            description={eventOptions.length === 0 && 'Cadastre um evento antes da ação.'}
+            searchPlaceholder='Buscar evento'
+            disabled={!hasEvents}
+            description={!hasEvents && 'Cadastre um evento antes da ação.'}
           />
           <FormInput
             control={control}
@@ -239,18 +231,16 @@ export default function CommercialActionForm({
           title='Financeiro'
           description='O valor sai da carteira ao salvar. Mudar o valor ou a carteira devolve o valor antigo e debita o novo; excluir a ação devolve o valor.'
         >
-          <FormSelect
+          <FormAsyncCombobox
             control={control}
             name='walletId'
             label='Carteira'
             required
-            options={walletOptions.map((wallet) => ({
-              value: wallet.id,
-              label: `${wallet.name} (${formatCurrency(wallet.balance)})`,
-            }))}
+            source='wallets'
             placeholder='Selecione a carteira'
-            disabled={walletOptions.length === 0}
-            description={walletOptions.length === 0 && 'Crie uma carteira antes da ação.'}
+            searchPlaceholder='Buscar pelo nome ou e-mail do membro'
+            disabled={!hasWallets}
+            description={!hasWallets && 'Crie uma carteira antes da ação.'}
           />
           <FormMoneyInput
             control={control}

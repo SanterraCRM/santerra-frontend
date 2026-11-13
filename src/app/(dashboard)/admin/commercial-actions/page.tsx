@@ -21,8 +21,6 @@ import {
 import { hasPermission, requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
 import type { CommercialAction } from '@/types/commercial-action';
-import type { Event } from '@/types/event';
-import type { WalletListItem } from '@/types/wallet';
 
 import {
   ACTION_EMPTY_TEXTS,
@@ -54,17 +52,23 @@ export default async function CommercialActionsPage({ searchParams }: Commercial
   const params = await searchParams;
   const token = session.accessToken;
   const can = (permission: string) => hasPermission(session, permission);
-  const [events, wallets, responsible] = await Promise.all([
-    can('events.read') ? apiRequest<Paginated<Event>>('/events?limit=100', { token }) : null,
-    can('wallets.read') ? apiRequest<Paginated<WalletListItem>>('/wallets?limit=100', { token }) : null,
+  const [event, wallet, responsible] = await Promise.all([
+    can('events.read')
+      ? resolveComboboxOption('events', getSearchParam(params, 'eventId'), token)
+      : null,
+    can('wallets.read')
+      ? resolveComboboxOption('wallets', getSearchParam(params, 'walletId'), token)
+      : null,
     can('employees.read')
       ? resolveComboboxOption('employees', getSearchParam(params, 'responsibleId'), token)
       : null,
   ]);
   const filterDefinitions = getActionFilters({
-    events: events?.data.map(({ id, name }) => ({ value: id, label: name })) ?? null,
-    wallets: wallets?.data.map(({ id, member }) => ({ value: id, label: member.name })) ?? null,
+    event,
+    wallet,
     responsible,
+    canSearchEvents: can('events.read'),
+    canSearchWallets: can('wallets.read'),
     canSearchEmployees: can('employees.read'),
   });
   const { page, pageSize, search: searchTerm } = parseListParams(params);
