@@ -1,7 +1,7 @@
 import type { Session } from 'next-auth';
 
 import type { DeleteDialogTexts } from '@/components/crud/confirm-delete-dialog';
-import type { FormCheckboxOption } from '@/components/form/form-checkbox-group';
+import type { FormMultiSelectOption } from '@/components/form/form-multi-select';
 import type { PageTab } from '@/components/layout/page-tabs';
 import type { ListEmptyStateTexts } from '@/components/list/list-empty-state';
 import type { FilterDefinition } from '@/lib/list-filters';
@@ -26,7 +26,7 @@ export function getRoleOptions(
   roles: Role[] | null,
   permissions: Permission[],
   grantedPermissions: string[],
-): FormCheckboxOption[] | null {
+): FormMultiSelectOption[] | null {
   if (!roles) {
     return null;
   }
@@ -37,7 +37,7 @@ export function getRoleOptions(
     return {
       value: role.id,
       label: role.name,
-      description: isGrantable ? role.description : ROLE_OUT_OF_SCOPE_DESCRIPTION,
+      description: isGrantable ? (role.description ?? undefined) : ROLE_OUT_OF_SCOPE_DESCRIPTION,
       disabled: !isGrantable,
     };
   });

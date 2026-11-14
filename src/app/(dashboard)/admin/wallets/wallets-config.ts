@@ -1,8 +1,13 @@
 import type { DeleteDialogTexts } from '@/components/crud/confirm-delete-dialog';
 import type { ListEmptyStateTexts } from '@/components/list/list-empty-state';
 import { formatCurrency } from '@/lib/format';
-import type { FilterDefinition } from '@/lib/list-filters';
-import type { Wallet } from '@/types/wallet';
+import type { FilterDefinition, FilterOption } from '@/lib/list-filters';
+import type { Wallet, WalletMovement, WalletMovementType } from '@/types/wallet';
+
+import {
+  COMMERCIAL_ACTIONS_HREF,
+  getActionTitle,
+} from '../commercial-actions/commercial-actions-config';
 
 export const WALLETS_HREF = '/admin/wallets';
 
@@ -52,4 +57,91 @@ export function getWalletDeleteTexts(wallet: Pick<Wallet, 'value'>): DeleteDialo
     ...WALLET_DELETE_TEXTS,
     warning: `A carteira ainda tem ${formatCurrency(wallet.value)} de saldo, que deixa de existir.`,
   };
+}
+
+export const WALLET_MOVEMENT_TYPE_LABELS: Record<WalletMovementType, string> = {
+  INITIAL_BALANCE: 'Saldo inicial',
+  ADJUSTMENT: 'Ajuste de saldo',
+  ACTION_DEBIT: 'Débito de ação',
+  ACTION_REFUND: 'Estorno de ação',
+};
+
+export const WALLET_MOVEMENT_FILTERS: FilterDefinition[] = [
+  {
+    type: 'select',
+    key: 'type',
+    label: 'Tipo',
+    options: Object.entries(WALLET_MOVEMENT_TYPE_LABELS).map(([value, label]) => ({
+      value,
+      label,
+    })),
+  },
+  { type: 'dateRange', label: 'Data', fromKey: 'createdFrom', toKey: 'createdTo' },
+];
+
+export const WALLET_MOVEMENT_DIRECTIONS: FilterOption[] = [
+  { value: 'credit', label: 'Entradas' },
+  { value: 'debit', label: 'Saídas' },
+];
+
+export const WALLET_MOVEMENT_EMPTY_TEXTS: ListEmptyStateTexts = {
+  notFoundTitle: 'Nenhuma movimentação encontrada',
+  filtersDescription: 'Nenhuma movimentação corresponde aos filtros aplicados.',
+  emptyTitle: 'Nenhuma movimentação ainda',
+  emptyDescription:
+    'Os acréscimos, os descontos e os débitos das ações comerciais vão aparecer aqui.',
+  emptyReadOnlyDescription:
+    'Os acréscimos, os descontos e os débitos das ações comerciais vão aparecer aqui.',
+};
+
+const movementDateFormatter = new Intl.DateTimeFormat('pt-BR', {
+  dateStyle: 'short',
+  timeStyle: 'short',
+  timeZone: 'America/Sao_Paulo',
+});
+
+export function formatMovementDate(value: string): string {
+  return movementDateFormatter.format(new Date(value));
+}
+
+export function formatSignedCurrency(value: number): string {
+  return value < 0 ? `−${formatCurrency(Math.abs(value))}` : `+${formatCurrency(value)}`;
+}
+
+export function getMovementTitle(movement: WalletMovement): string {
+  if (movement.commercialAction) {
+    return getActionTitle(movement.commercialAction);
+  }
+
+  if (movement.type === 'ADJUSTMENT') {
+    return movement.amount < 0 ? 'Desconto' : 'Acréscimo';
+  }
+
+  return movement.type === 'INITIAL_BALANCE' ? 'Saldo inicial' : 'Ação comercial';
+}
+
+export function getMovementSubtitle(movement: WalletMovement): string {
+  const { commercialAction } = movement;
+
+  if (commercialAction) {
+    const parts = [WALLET_MOVEMENT_TYPE_LABELS[movement.type], commercialAction.event.name];
+
+    return [...parts, ...(commercialAction.deletedAt ? ['ação excluída'] : [])].join(' · ');
+  }
+
+  if (movement.reason) {
+    return movement.reason;
+  }
+
+  return movement.type === 'INITIAL_BALANCE'
+    ? 'Saldo com que a carteira foi criada.'
+    : WALLET_MOVEMENT_TYPE_LABELS[movement.type];
+}
+
+export function getMovementHref(movement: WalletMovement): string | undefined {
+  const { commercialAction } = movement;
+
+  return commercialAction && !commercialAction.deletedAt
+    ? `${COMMERCIAL_ACTIONS_HREF}/${commercialAction.id}`
+    : undefined;
 }

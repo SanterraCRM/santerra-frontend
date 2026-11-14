@@ -11,6 +11,22 @@ export const PERMISSION_ACTION_LABELS: Record<PermissionAction, string> = {
   delete: 'Excluir',
 };
 
+export type PermissionExtraAction = {
+  action: string;
+  label: string;
+  description: string;
+};
+
+export const PERMISSION_EXTRA_ACTIONS: Record<string, PermissionExtraAction[]> = {
+  wallets: [
+    {
+      action: 'adjust',
+      label: 'Ajustar saldo',
+      description: 'Acrescentar ou diminuir o saldo, com motivo.',
+    },
+  ],
+};
+
 export type PermissionResource = {
   key: string;
   label: string;
@@ -36,7 +52,7 @@ export const PERMISSION_RESOURCE_GROUPS: PermissionResourceGroup[] = [
     resources: [
       { key: 'commercial-trips', label: 'Visitas' },
       { key: 'commercial-actions', label: 'Ações comerciais' },
-      { key: 'events', label: 'Eventos' },
+      { key: 'events', label: 'Tipos de evento' },
       { key: 'wallets', label: 'Carteiras' },
     ],
   },

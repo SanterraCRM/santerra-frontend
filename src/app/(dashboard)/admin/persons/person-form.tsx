@@ -20,7 +20,6 @@ import {
   optionalNationalIdSchema,
   optionalPhoneSchema,
 } from '@/lib/schemas';
-import type { Member } from '@/types/member';
 import type { CreatePersonInput, Person, PersonInput, PersonType } from '@/types/person';
 import type { Potential } from '@/types/potential';
 
@@ -124,7 +123,7 @@ type PersonFormProps = {
   personTypes?: PersonType[];
   fixedType?: PersonType;
   potentials?: Pick<Potential, 'id' | 'name'>[];
-  members?: Pick<Member, 'id' | 'name' | 'email'>[];
+  canSearchMembers?: boolean;
   canCreatePotential?: boolean;
 };
 
@@ -150,7 +149,7 @@ export default function PersonForm({
   personTypes = [],
   fixedType,
   potentials = [],
-  members,
+  canSearchMembers = false,
   canCreatePotential = false,
 }: PersonFormProps) {
   const returnToList = useReturnToList(listHref);
@@ -277,7 +276,7 @@ export default function PersonForm({
               {selectedType === 'producer' ? (
                 <ProducerFields potentials={potentials} canCreatePotential={canCreatePotential} />
               ) : (
-                <EmployeeFields members={members} />
+                <EmployeeFields canSearchMembers={canSearchMembers} />
               )}
             </FieldSet>
           </>

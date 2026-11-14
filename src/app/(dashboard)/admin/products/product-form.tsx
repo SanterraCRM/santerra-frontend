@@ -5,12 +5,12 @@ import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
+import { FormAsyncCombobox } from '@/components/form/form-async-combobox';
 import { FormCard } from '@/components/form/form-card';
 import { FormFileAttachments } from '@/components/form/form-file-attachments';
 import { FormInput } from '@/components/form/form-input';
 import { FormMoneyInput } from '@/components/form/form-money-input';
 import { FormMultiSelect } from '@/components/form/form-multi-select';
-import { FormSelect } from '@/components/form/form-select';
 import { FormTextarea } from '@/components/form/form-textarea';
 import { useCreateProduct } from '@/hooks/products/use-create-product';
 import { useUpdateProduct } from '@/hooks/products/use-update-product';
@@ -18,7 +18,12 @@ import { useReturnToList } from '@/hooks/use-return-to-list';
 import { getApiErrorMessage } from '@/lib/api';
 import { parseMoney, toMoneyInputValue } from '@/lib/format';
 import type { AttachmentPermissions } from '@/lib/permissions';
-import { optionalMoneySchema, optionalTextSchema, storedFilesSchema } from '@/lib/schemas';
+import {
+  optionalMoneySchema,
+  optionalTextSchema,
+  requiredOptionSchema,
+  storedFilesSchema,
+} from '@/lib/schemas';
 import type { Product, ProductInput, ProductRelation } from '@/types/product';
 
 import type { ProductOptions } from './product-options';
@@ -26,7 +31,7 @@ import { formatMargin, PRODUCTS_HREF } from './products-config';
 
 const productFormSchema = z.object({
   name: z.string().trim().min(1, 'Informe o nome do produto'),
-  manufacturerId: z.string().min(1, 'Selecione o fabricante'),
+  manufacturerId: requiredOptionSchema('Selecione o fabricante'),
   groupIds: z.array(z.string()),
   price: optionalMoneySchema,
   costPrice: optionalMoneySchema,
@@ -40,7 +45,9 @@ type ProductFormOutput = z.output<typeof productFormSchema>;
 function toFormValues(product?: Product): ProductFormInput {
   return {
     name: product?.name ?? '',
-    manufacturerId: product?.manufacturerId ?? '',
+    manufacturerId: product
+      ? { value: product.manufacturer.id, label: product.manufacturer.name }
+      : null,
     groupIds: product?.groupIds ?? [],
     price: product?.price == null ? '' : toMoneyInputValue(product.price),
     costPrice: product?.costPrice == null ? '' : toMoneyInputValue(product.costPrice),
@@ -62,7 +69,7 @@ type ProductFormProps = ProductOptions & {
 
 export default function ProductForm({
   product,
-  manufacturers,
+  hasManufacturers,
   groups,
   attachments,
 }: ProductFormProps) {
@@ -82,7 +89,6 @@ export default function ProductForm({
   });
   const [price, costPrice] = useWatch({ control, name: ['price', 'costPrice'] });
   const margin = formatMargin(parseMoney(price), parseMoney(costPrice));
-  const manufacturerOptions = withCurrent(manufacturers, product ? [product.manufacturer] : []);
   const groupOptions = withCurrent(groups ?? [], product?.groups ?? []);
   const showGroups = groups !== null || groupOptions.length > 0;
 
@@ -137,18 +143,16 @@ export default function ProductForm({
           placeholder='Ex.: Semente de soja'
           className='sm:col-span-2'
         />
-        <FormSelect
+        <FormAsyncCombobox
           control={control}
           name='manufacturerId'
           label='Fabricante'
           required
-          options={manufacturerOptions}
+          source='manufacturers'
           placeholder='Selecione o fabricante'
-          disabled={manufacturerOptions.length === 0}
-          description={
-            manufacturerOptions.length === 0 &&
-            'Nenhum fabricante cadastrado na plataforma ainda.'
-          }
+          searchPlaceholder='Buscar por nome ou CNPJ'
+          disabled={!hasManufacturers}
+          description={!hasManufacturers && 'Nenhum fabricante cadastrado na plataforma ainda.'}
         />
         {showGroups && (
           <FormMultiSelect

@@ -1,5 +1,6 @@
 import type { DeleteDialogTexts } from '@/components/crud/confirm-delete-dialog';
 import type { ListEmptyStateTexts } from '@/components/list/list-empty-state';
+import type { ComboboxOption } from '@/lib/combobox-sources';
 import { formatCurrency, formatPercent } from '@/lib/format';
 import type { FilterDefinition, FilterOption } from '@/lib/list-filters';
 import type { ProductRelation } from '@/types/product';
@@ -11,19 +12,18 @@ function toFilterOptions(relations: ProductRelation[]): FilterOption[] {
 }
 
 export function getProductFilters(
-  manufacturers: ProductRelation[],
+  manufacturer: ComboboxOption | null,
   groups: ProductRelation[] | null,
 ): FilterDefinition[] {
-  const filters: FilterDefinition[] = [];
-
-  if (manufacturers.length > 0) {
-    filters.push({
-      type: 'select',
+  const filters: FilterDefinition[] = [
+    {
+      type: 'search',
       key: 'manufacturerId',
       label: 'Fabricante',
-      options: toFilterOptions(manufacturers),
-    });
-  }
+      source: 'manufacturers',
+      selected: manufacturer,
+    },
+  ];
 
   if (groups && groups.length > 0) {
     filters.push({ type: 'select', key: 'groupId', label: 'Grupo', options: toFilterOptions(groups) });

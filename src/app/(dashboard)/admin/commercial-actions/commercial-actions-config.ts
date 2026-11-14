@@ -3,28 +3,38 @@ import type { RelatedRecord } from '@/components/crud/related-records';
 import type { ListEmptyStateTexts } from '@/components/list/list-empty-state';
 import type { ComboboxOption } from '@/lib/combobox-sources';
 import { formatCurrency, formatDate } from '@/lib/format';
-import type { FilterDefinition, FilterOption } from '@/lib/list-filters';
+import type { FilterDefinition } from '@/lib/list-filters';
 import type { CommercialAction, CommercialActionRelation } from '@/types/commercial-action';
 
 export const COMMERCIAL_ACTIONS_HREF = '/admin/commercial-actions';
 
 type ActionFilterOptions = {
-  events: FilterOption[] | null;
-  wallets: FilterOption[] | null;
+  event: ComboboxOption | null;
+  wallet: ComboboxOption | null;
   responsible: ComboboxOption | null;
+  canSearchEvents: boolean;
+  canSearchWallets: boolean;
   canSearchEmployees: boolean;
 };
 
 export function getActionFilters({
-  events,
-  wallets,
+  event,
+  wallet,
   responsible,
+  canSearchEvents,
+  canSearchWallets,
   canSearchEmployees,
 }: ActionFilterOptions): FilterDefinition[] {
   const filters: FilterDefinition[] = [];
 
-  if (events && events.length > 0) {
-    filters.push({ type: 'select', key: 'eventId', label: 'Evento', options: events });
+  if (canSearchEvents) {
+    filters.push({
+      type: 'search',
+      key: 'eventId',
+      label: 'Tipo de evento',
+      source: 'events',
+      selected: event,
+    });
   }
 
   if (canSearchEmployees) {
@@ -37,8 +47,14 @@ export function getActionFilters({
     });
   }
 
-  if (wallets && wallets.length > 0) {
-    filters.push({ type: 'select', key: 'walletId', label: 'Carteira', options: wallets });
+  if (canSearchWallets) {
+    filters.push({
+      type: 'search',
+      key: 'walletId',
+      label: 'Carteira',
+      source: 'wallets',
+      selected: wallet,
+    });
   }
 
   filters.push({ type: 'dateRange', label: 'Início', fromKey: 'initialFrom', toKey: 'initialTo' });
@@ -49,9 +65,9 @@ export function getActionFilters({
 export const ACTION_EMPTY_TEXTS: ListEmptyStateTexts = {
   notFoundTitle: 'Nenhuma ação encontrada',
   filtersDescription: 'Nenhuma ação comercial corresponde aos filtros aplicados.',
-  searchHint: 'Busque pela descrição ou pelo nome do evento.',
+  searchHint: 'Busque pela descrição ou pelo nome do tipo de evento.',
   emptyTitle: 'Nenhuma ação comercial cadastrada',
-  emptyDescription: 'Cadastre a primeira ação comercial de um evento.',
+  emptyDescription: 'Cadastre a primeira ação comercial, como um dia de campo ou uma feira.',
   emptyReadOnlyDescription: 'Quando houver ações comerciais cadastradas, elas aparecerão aqui.',
 };
 
@@ -63,7 +79,7 @@ const ACTION_DELETE_TEXTS: DeleteDialogTexts = {
 };
 
 export function getActionTitle(action: Pick<CommercialAction, 'description' | 'event'>): string {
-  return action.description || `Ação no evento ${action.event.name}`;
+  return action.description || `Ação de ${action.event.name}`;
 }
 
 export function getActionDeleteTexts(
@@ -101,24 +117,16 @@ export function formatNames(relations: CommercialActionRelation[]): string {
   return relations.map((relation) => relation.name).join(', ');
 }
 
-export function toActionRecords(
-  actions: CommercialAction[],
-  perspective: 'event' | 'wallet',
-): RelatedRecord[] {
+export function toActionRecords(actions: CommercialAction[]): RelatedRecord[] {
   return actions.map((action) => {
-    const period = formatPeriod(action);
-    const parts =
-      perspective === 'event'
-        ? [period, `Responsável: ${action.responsible.name}`]
-        : [action.event.name, period];
-    const price = action.price ? formatCurrency(action.price) : undefined;
+    const parts = [formatPeriod(action), `Responsável: ${action.responsible.name}`];
 
     return {
       id: action.id,
       href: `${COMMERCIAL_ACTIONS_HREF}/${action.id}`,
       title: getActionTitle(action),
       subtitle: parts.filter((part) => part !== '—').join(' · '),
-      value: price && perspective === 'wallet' ? `−${price}` : price,
+      value: action.price ? formatCurrency(action.price) : undefined,
     };
   });
 }

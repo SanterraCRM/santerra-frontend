@@ -10,14 +10,20 @@ import { ListFilters } from '@/components/list/list-filters';
 import { ListPagination } from '@/components/list/list-pagination';
 import { Button } from '@/components/ui/button';
 import { apiRequest } from '@/lib/api';
+import { resolveComboboxOption } from '@/lib/combobox-sources';
 import { formatCurrency } from '@/lib/format';
 import { parseFilters, toApiFilters } from '@/lib/list-filters';
-import { buildApiListQuery, buildListHref, parseListParams } from '@/lib/list-params';
+import {
+  buildApiListQuery,
+  buildListHref,
+  getSearchParam,
+  parseListParams,
+} from '@/lib/list-params';
 import { hasPermission, requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
 import type { Product } from '@/types/product';
 
-import { getProductOptions } from './product-options';
+import { getProductGroups } from './product-options';
 import {
   getProductFilters,
   PRODUCT_DELETE_TEXTS,
@@ -35,11 +41,16 @@ type ProductsPageProps = {
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const session = await requireSession('products.read');
-  const [params, { manufacturers, groups }] = await Promise.all([
-    searchParams,
-    getProductOptions(session),
+  const params = await searchParams;
+  const [manufacturer, groups] = await Promise.all([
+    resolveComboboxOption(
+      'manufacturers',
+      getSearchParam(params, 'manufacturerId'),
+      session.accessToken,
+    ),
+    getProductGroups(session),
   ]);
-  const filterDefinitions = getProductFilters(manufacturers, groups);
+  const filterDefinitions = getProductFilters(manufacturer, groups);
   const { page, pageSize, search: searchTerm } = parseListParams(params);
   const filters = parseFilters(params, filterDefinitions);
   const listQuery = { search: searchTerm, ...filters };

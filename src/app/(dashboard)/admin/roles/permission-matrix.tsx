@@ -16,14 +16,18 @@ import { cn } from '@/lib/cn';
 import {
   PERMISSION_ACTION_LABELS,
   PERMISSION_ACTIONS,
+  PERMISSION_EXTRA_ACTIONS,
   PERMISSION_RESOURCE_GROUPS,
-  type PermissionAction,
   type PermissionResource,
 } from '@/lib/permissions';
 import type { Permission } from '@/types/permission';
 
 const NOT_GRANTABLE_REASON = 'Você não tem esta permissão, então não pode concedê-la.';
-const DEPENDENT_ACTIONS: PermissionAction[] = ['create', 'update', 'delete'];
+const DEPENDENT_ACTIONS = ['create', 'update', 'delete'];
+
+function getExtraActions(resource: PermissionResource) {
+  return PERMISSION_EXTRA_ACTIONS[resource.key] ?? [];
+}
 
 type PermissionMatrixProps = {
   permissions: Permission[];
@@ -45,18 +49,18 @@ export function PermissionMatrix({
   const byName = new Map(permissions.map((permission) => [permission.name, permission]));
   const hasLockedPermission = !readOnly && permissions.some(({ name }) => !granted.has(name));
 
-  function findPermission(resource: PermissionResource, action: PermissionAction) {
+  function findPermission(resource: PermissionResource, action: string) {
     return byName.get(`${resource.key}.${action}`);
   }
 
-  function grantableIds(resource: PermissionResource, actions: PermissionAction[]): string[] {
+  function grantableIds(resource: PermissionResource, actions: string[]): string[] {
     return actions
       .map((action) => findPermission(resource, action))
       .filter((permission): permission is Permission => Boolean(permission && granted.has(permission.name)))
       .map((permission) => permission.id);
   }
 
-  function toggle(resource: PermissionResource, action: PermissionAction, checked: boolean) {
+  function toggle(resource: PermissionResource, action: string, checked: boolean) {
     const permission = findPermission(resource, action);
 
     if (!permission || !onChange) {
@@ -75,11 +79,35 @@ export function PermissionMatrix({
       next.delete(permission.id);
 
       if (action === 'read') {
-        grantableIds(resource, DEPENDENT_ACTIONS).forEach((id) => next.delete(id));
+        const extraActions = getExtraActions(resource).map((extra) => extra.action);
+
+        grantableIds(resource, [...DEPENDENT_ACTIONS, ...extraActions]).forEach((id) =>
+          next.delete(id),
+        );
       }
     }
 
     onChange([...next].sort());
+  }
+
+  function renderCheckbox(permission: Permission, label: string, resource: PermissionResource, action: string) {
+    const isLocked = !granted.has(permission.name);
+
+    return (
+      <Checkbox
+        checked={selected.has(permission.id)}
+        disabled={readOnly || isLocked}
+        aria-label={label}
+        onCheckedChange={(checked) => toggle(resource, action, checked === true)}
+        className={cn(readOnly && 'disabled:opacity-100')}
+      />
+    );
+  }
+
+  function getTitle(permission: Permission): string | undefined {
+    return !granted.has(permission.name) && !readOnly
+      ? NOT_GRANTABLE_REASON
+      : (permission.description ?? undefined);
   }
 
   return (
@@ -113,45 +141,79 @@ export function PermissionMatrix({
                 </TableRow>
 
                 {group.resources.map((resource) => (
-                  <TableRow key={resource.key}>
-                    <TableCell className='px-3 font-medium whitespace-normal sm:px-4'>
-                      {resource.label}
-                    </TableCell>
+                  <Fragment key={resource.key}>
+                    <TableRow>
+                      <TableCell className='px-3 font-medium whitespace-normal sm:px-4'>
+                        {resource.label}
+                      </TableCell>
 
-                    {PERMISSION_ACTIONS.map((action) => {
-                      const permission = findPermission(resource, action);
+                      {PERMISSION_ACTIONS.map((action) => {
+                        const permission = findPermission(resource, action);
 
-                      if (!permission) {
+                        if (!permission) {
+                          return (
+                            <TableCell key={action} className='px-1 text-center sm:px-2'>
+                              <span aria-hidden='true' className='text-muted-foreground/60'>
+                                —
+                              </span>
+                            </TableCell>
+                          );
+                        }
+
                         return (
-                          <TableCell key={action} className='px-1 text-center sm:px-2'>
-                            <span aria-hidden='true' className='text-muted-foreground/60'>
-                              —
+                          <TableCell
+                            key={action}
+                            title={getTitle(permission)}
+                            className='px-1 text-center sm:px-2'
+                          >
+                            <span className='inline-flex items-center justify-center'>
+                              {renderCheckbox(
+                                permission,
+                                `${PERMISSION_ACTION_LABELS[action]} ${resource.label}`,
+                                resource,
+                                action,
+                              )}
                             </span>
                           </TableCell>
                         );
+                      })}
+                    </TableRow>
+
+                    {getExtraActions(resource).map((extra) => {
+                      const permission = findPermission(resource, extra.action);
+
+                      if (!permission) {
+                        return null;
                       }
 
-                      const isLocked = !granted.has(permission.name);
-
                       return (
-                        <TableCell
-                          key={action}
-                          title={isLocked && !readOnly ? NOT_GRANTABLE_REASON : permission.description ?? undefined}
-                          className='px-1 text-center sm:px-2'
-                        >
-                          <span className='inline-flex items-center justify-center'>
-                            <Checkbox
-                              checked={selected.has(permission.id)}
-                              disabled={readOnly || isLocked}
-                              aria-label={`${PERMISSION_ACTION_LABELS[action]} ${resource.label}`}
-                              onCheckedChange={(checked) => toggle(resource, action, checked === true)}
-                              className={cn(readOnly && 'disabled:opacity-100')}
-                            />
-                          </span>
-                        </TableCell>
+                        <TableRow key={extra.action}>
+                          <TableCell className='py-2 pr-3 pl-6 text-sm whitespace-normal sm:pr-4 sm:pl-8'>
+                            {extra.label}
+                          </TableCell>
+                          <TableCell
+                            colSpan={PERMISSION_ACTIONS.length}
+                            title={getTitle(permission)}
+                            className='px-1 py-2 whitespace-normal sm:px-2'
+                          >
+                            <span className='flex items-center gap-3'>
+                              <span className='flex w-10 shrink-0 justify-center sm:w-16'>
+                                {renderCheckbox(
+                                  permission,
+                                  `${extra.label} (${resource.label})`,
+                                  resource,
+                                  extra.action,
+                                )}
+                              </span>
+                              <span className='text-xs text-muted-foreground'>
+                                {extra.description}
+                              </span>
+                            </span>
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
-                  </TableRow>
+                  </Fragment>
                 ))}
               </Fragment>
             ))}

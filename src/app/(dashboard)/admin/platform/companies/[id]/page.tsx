@@ -45,7 +45,7 @@ export default async function PlatformCompanyPage({ params }: PlatformCompanyPag
       backLabel='Empresas'
       icon={Building}
       title={company.name}
-      description={`${formatMembersCount(company.membersCount)} · Cadastro criado em ${formatDate(company.createdAt, 'long')}`}
+      description={`${company.active ? '' : 'Inativa · '}${formatMembersCount(company.membersCount)} · Cadastro criado em ${formatDate(company.createdAt, 'long')}`}
     >
       <CompanyForm company={company} />
       <RecordDetails

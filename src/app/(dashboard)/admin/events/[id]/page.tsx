@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: EventPageProps): Promise<Meta
   const session = await getServerSession(authOptions);
 
   if (!session || !hasPermission(session, 'events.read')) {
-    return { title: 'Evento' };
+    return { title: 'Tipo de evento' };
   }
 
   const { id } = await params;
@@ -62,7 +62,7 @@ export default async function EventPage({ params }: EventPageProps) {
   return (
     <RecordPageLayout
       backHref='/admin/events'
-      backLabel='Eventos'
+      backLabel='Tipos de evento'
       icon={CalendarDays}
       title={event.name}
       description={`Cadastro criado em ${formatDate(event.createdAt, 'long')}`}
@@ -81,7 +81,7 @@ export default async function EventPage({ params }: EventPageProps) {
         <EventForm event={event} />
       ) : (
         <RecordDetails
-          title='Dados do evento'
+          title='Dados do tipo de evento'
           fields={[
             { label: 'Nome', value: event.name },
             { label: 'Descrição', value: event.description, wide: true },
@@ -91,11 +91,11 @@ export default async function EventPage({ params }: EventPageProps) {
 
       {actions && (
         <RelatedRecords
-          title='Ações deste evento'
-          description='As ações comerciais mais recentes feitas neste evento.'
-          records={toActionRecords(actions.data, 'event')}
+          title='Ações deste tipo de evento'
+          description='As ações comerciais mais recentes deste tipo de evento.'
+          records={toActionRecords(actions.data)}
           total={actions.meta.total}
-          emptyMessage='Nenhuma ação comercial neste evento.'
+          emptyMessage='Nenhuma ação comercial deste tipo de evento.'
           viewAllHref={`${COMMERCIAL_ACTIONS_HREF}?eventId=${event.id}`}
           viewAllLabel='Ver todas'
         />

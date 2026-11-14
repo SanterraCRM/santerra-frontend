@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, useState, useTransition } from 'react';
 
 import { AsyncCombobox } from '@/components/form/async-combobox';
+import { Combobox, hasSearchableSize } from '@/components/form/combobox';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
@@ -120,6 +121,22 @@ function RangeFilterField({ filter, values, onChange }: RangeFilterFieldProps) {
 function FilterField({ filter, values, onChange }: FilterFieldProps) {
   if (filter.type === 'select') {
     const id = `filter-${filter.key}`;
+    const value = values[filter.key];
+
+    if (hasSearchableSize(filter.options.length)) {
+      return (
+        <Field>
+          <FieldLabel htmlFor={id}>{filter.label}</FieldLabel>
+          <Combobox
+            id={id}
+            options={filter.options}
+            value={value ? [value] : []}
+            onChange={(next) => onChange(filter.key, next[0] ?? '')}
+            emptyOption='Todos'
+          />
+        </Field>
+      );
+    }
 
     return (
       <Field>

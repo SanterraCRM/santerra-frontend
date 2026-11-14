@@ -8,6 +8,12 @@ const dateFormatters = {
   long: new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: TIME_ZONE }),
 };
 
+const dayFormatter = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', timeZone: TIME_ZONE });
+const shortMonthFormatter = new Intl.DateTimeFormat('pt-BR', {
+  month: 'short',
+  timeZone: TIME_ZONE,
+});
+
 const dateInputFormatter = new Intl.DateTimeFormat('en-CA', {
   year: 'numeric',
   month: '2-digit',
@@ -110,6 +116,15 @@ export function formatDate(
   style: keyof typeof dateFormatters = 'short',
 ): string {
   return dateFormatters[style].format(new Date(value));
+}
+
+export function formatDateParts(value: string | Date): { day: string; month: string } {
+  const date = new Date(value);
+
+  return {
+    day: dayFormatter.format(date),
+    month: shortMonthFormatter.format(date).replace('.', ''),
+  };
 }
 
 export function toDayBoundary(date: string, boundary: 'start' | 'end'): string {

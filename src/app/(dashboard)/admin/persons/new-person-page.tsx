@@ -4,7 +4,6 @@ import { RecordPageLayout } from '@/components/layout/record-page-layout';
 import { apiRequest } from '@/lib/api';
 import { hasPermission, requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
-import type { Member } from '@/types/member';
 import type { Potential } from '@/types/potential';
 
 import PersonForm from './person-form';
@@ -25,14 +24,9 @@ export async function NewPersonPage({ section }: NewPersonPageProps) {
     notFound();
   }
 
-  const [potentials, members] = await Promise.all([
-    personTypes.includes('producer')
-      ? apiRequest<Paginated<Potential>>('/potentials?limit=100', { token: session.accessToken })
-      : null,
-    personTypes.includes('employee') && hasPermission(session, 'members.read')
-      ? apiRequest<Paginated<Member>>('/members?limit=100', { token: session.accessToken })
-      : null,
-  ]);
+  const potentials = personTypes.includes('producer')
+    ? await apiRequest<Paginated<Potential>>('/potentials?limit=100', { token: session.accessToken })
+    : null;
 
   return (
     <RecordPageLayout
@@ -47,7 +41,9 @@ export async function NewPersonPage({ section }: NewPersonPageProps) {
         personTypes={personTypes}
         fixedType={section.type}
         potentials={potentials?.data.map(({ id, name }) => ({ id, name })) ?? []}
-        members={members?.data.map(({ id, name, email }) => ({ id, name, email }))}
+        canSearchMembers={
+          personTypes.includes('employee') && hasPermission(session, 'members.read')
+        }
         canCreatePotential={hasPermission(session, 'potentials.create')}
       />
     </RecordPageLayout>

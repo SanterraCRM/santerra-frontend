@@ -2,15 +2,14 @@ import { useSession } from 'next-auth/react';
 
 import { useMutation } from '@/hooks/use-mutation';
 import { apiRequest } from '@/lib/api';
-import type { Wallet } from '@/types/wallet';
 
-export function useCreditWallet() {
+export function useDeactivateCompany() {
   const { data: session } = useSession();
 
-  return useMutation((id: string, amount: number) =>
-    apiRequest<Wallet>(`/wallets/${id}/credits`, {
+  return useMutation((password: string) =>
+    apiRequest<void>('/companies/current/deactivate', {
       method: 'POST',
-      body: { amount },
+      body: { password },
       token: session?.accessToken,
     }),
   );

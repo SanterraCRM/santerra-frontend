@@ -7,18 +7,19 @@ export const EVENT_FILTERS: FilterDefinition[] = [
 ];
 
 export const EVENT_EMPTY_TEXTS: ListEmptyStateTexts = {
-  notFoundTitle: 'Nenhum evento encontrado',
-  filtersDescription: 'Nenhum evento corresponde aos filtros aplicados.',
+  notFoundTitle: 'Nenhum tipo de evento encontrado',
+  filtersDescription: 'Nenhum tipo de evento corresponde aos filtros aplicados.',
   searchHint: 'Confira a grafia ou busque por um trecho da descrição.',
-  emptyTitle: 'Nenhum evento cadastrado',
-  emptyDescription: 'Cadastre o primeiro evento para registrar as ações comerciais feitas nele.',
-  emptyReadOnlyDescription: 'Quando houver eventos cadastrados, eles aparecerão aqui.',
+  emptyTitle: 'Nenhum tipo de evento cadastrado',
+  emptyDescription:
+    'Cadastre o primeiro tipo de evento, como dia de campo ou feira, para registrar as ações comerciais.',
+  emptyReadOnlyDescription: 'Quando houver tipos de evento cadastrados, eles aparecerão aqui.',
 };
 
 export const EVENT_DELETE_TEXTS: DeleteDialogTexts = {
   description:
-    'O evento sai da lista e não poderá mais ser usado no cadastro de ações comerciais. Esta ação não pode ser desfeita.',
-  confirmLabel: 'Excluir evento',
-  successMessage: 'Evento excluído.',
-  errorMessage: 'Não foi possível excluir o evento. Tente novamente.',
+    'O tipo de evento sai da lista e não poderá mais ser usado no cadastro de ações comerciais. Esta ação não pode ser desfeita.',
+  confirmLabel: 'Excluir tipo de evento',
+  successMessage: 'Tipo de evento excluído.',
+  errorMessage: 'Não foi possível excluir o tipo de evento. Tente novamente.',
 };

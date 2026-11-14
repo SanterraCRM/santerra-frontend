@@ -2,10 +2,10 @@ import { Wallet as WalletIcon } from 'lucide-react';
 import type { Metadata } from 'next';
 
 import { RecordPageLayout } from '@/components/layout/record-page-layout';
-import { apiRequest } from '@/lib/api';
+import { apiRequest, hasRecords } from '@/lib/api';
+import { COMBOBOX_SOURCES, type ComboboxOption, isUuid } from '@/lib/combobox-sources';
 import { getSearchParam } from '@/lib/list-params';
 import { requireSession } from '@/lib/session';
-import type { Paginated } from '@/types/api';
 import type { Member } from '@/types/member';
 
 import WalletForm from '../wallet-form';
@@ -19,19 +19,23 @@ type NewWalletPageProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
+async function getPreselectedMember(id: string, token: string): Promise<ComboboxOption | null> {
+  if (!isUuid(id)) {
+    return null;
+  }
+
+  const member = await apiRequest<Member>(`/members/${id}`, { token }).catch(() => null);
+
+  return member?.active ? COMBOBOX_SOURCES.membersWithoutWallet.toOption(member) : null;
+}
+
 export default async function NewWalletPage({ searchParams }: NewWalletPageProps) {
   const session = await requireSession(['wallets.create', 'members.read']);
-  const [params, members] = await Promise.all([
-    searchParams,
-    apiRequest<Paginated<Member>>('/members?limit=100&active=true&hasWallet=false', {
-      token: session.accessToken,
-    }),
+  const params = await searchParams;
+  const [hasAvailableMembers, defaultMember] = await Promise.all([
+    hasRecords('/members', session.accessToken, { active: 'true', hasWallet: 'false' }),
+    getPreselectedMember(getSearchParam(params, 'member'), session.accessToken),
   ]);
-  const memberOptions = members.data.map(({ id, name, email }) => ({
-    value: id,
-    label: `${name} (${email})`,
-  }));
-  const preselected = getSearchParam(params, 'member');
 
   return (
     <RecordPageLayout
@@ -41,10 +45,7 @@ export default async function NewWalletPage({ searchParams }: NewWalletPageProps
       title='Nova carteira'
       description='Escolha o membro e o saldo inicial da carteira.'
     >
-      <WalletForm
-        memberOptions={memberOptions}
-        defaultMemberId={memberOptions.some(({ value }) => value === preselected) ? preselected : ''}
-      />
+      <WalletForm hasAvailableMembers={hasAvailableMembers} defaultMember={defaultMember} />
     </RecordPageLayout>
   );
 }

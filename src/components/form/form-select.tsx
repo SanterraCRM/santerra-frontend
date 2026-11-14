@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+import { Combobox, hasSearchableSize } from './combobox';
 import { FormLabel } from './form-label';
 
 const EMPTY_OPTION_VALUE = '__empty__';
@@ -29,6 +30,7 @@ type FormSelectProps<TValues extends FieldValues, TContext, TTransformed> = {
   emptyOption?: string;
   required?: boolean;
   placeholder?: string;
+  searchPlaceholder?: string;
   disabled?: boolean;
   description?: ReactNode;
   className?: string;
@@ -42,10 +44,13 @@ export function FormSelect<TValues extends FieldValues, TContext, TTransformed>(
   emptyOption,
   required,
   placeholder,
+  searchPlaceholder,
   disabled,
   description,
   className,
 }: FormSelectProps<TValues, TContext, TTransformed>) {
+  const isSearchable = hasSearchableSize(options.length);
+
   return (
     <Controller
       name={name}
@@ -53,29 +58,45 @@ export function FormSelect<TValues extends FieldValues, TContext, TTransformed>(
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid} className={className}>
           <FormLabel htmlFor={field.name} label={label} required={required} />
-          <Select
-            name={field.name}
-            value={(field.value as string) || (emptyOption ? EMPTY_OPTION_VALUE : '')}
-            onValueChange={(value) => field.onChange(value === EMPTY_OPTION_VALUE ? '' : value)}
-            disabled={disabled}
-          >
-            <SelectTrigger
-              ref={field.ref}
+          {isSearchable ? (
+            <Combobox
               id={field.name}
-              aria-invalid={fieldState.invalid}
-              className='w-full'
+              options={options}
+              value={field.value ? [field.value as string] : []}
+              onChange={(next) => field.onChange(next[0] ?? '')}
+              emptyOption={emptyOption}
+              placeholder={placeholder}
+              searchPlaceholder={searchPlaceholder}
+              disabled={disabled}
+              invalid={fieldState.invalid}
+              onBlur={field.onBlur}
+              triggerRef={field.ref}
+            />
+          ) : (
+            <Select
+              name={field.name}
+              value={(field.value as string) || (emptyOption ? EMPTY_OPTION_VALUE : '')}
+              onValueChange={(value) => field.onChange(value === EMPTY_OPTION_VALUE ? '' : value)}
+              disabled={disabled}
             >
-              <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-            <SelectContent position='popper'>
-              {emptyOption && <SelectItem value={EMPTY_OPTION_VALUE}>{emptyOption}</SelectItem>}
-              {options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              <SelectTrigger
+                ref={field.ref}
+                id={field.name}
+                aria-invalid={fieldState.invalid}
+                className='w-full'
+              >
+                <SelectValue placeholder={placeholder} />
+              </SelectTrigger>
+              <SelectContent position='popper'>
+                {emptyOption && <SelectItem value={EMPTY_OPTION_VALUE}>{emptyOption}</SelectItem>}
+                {options.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           {description && <FieldDescription>{description}</FieldDescription>}
           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
         </Field>

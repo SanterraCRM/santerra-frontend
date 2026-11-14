@@ -7,29 +7,27 @@ import { FormProvider, useForm, useFormContext, useWatch } from 'react-hook-form
 import { z } from 'zod';
 
 import { ActionCard } from '@/components/crud/action-card';
+import { FormAsyncCombobox } from '@/components/form/form-async-combobox';
 import { FormCard } from '@/components/form/form-card';
 import { FormInput } from '@/components/form/form-input';
-import { FormSelect } from '@/components/form/form-select';
 import { Button } from '@/components/ui/button';
 import { useCreateEmployee } from '@/hooks/employees/use-create-employee';
 import { useUpdateEmployee } from '@/hooks/employees/use-update-employee';
 import { useReturnToList } from '@/hooks/use-return-to-list';
 import { getApiErrorMessage, isApiErrorWithCode } from '@/lib/api';
 import { toDateInputValue } from '@/lib/format';
-import { optionalDateSchema, optionalTextSchema } from '@/lib/schemas';
+import { optionalDateSchema, optionalOptionSchema } from '@/lib/schemas';
 import type { EmployeeInput } from '@/types/employee';
-import type { Member } from '@/types/member';
 import type { PersonEmployee } from '@/types/person';
 
 export const employeeFieldsSchema = z.object({
   hiredAt: optionalDateSchema,
   terminatedAt: optionalDateSchema,
-  userCompanyId: optionalTextSchema,
+  userCompanyId: optionalOptionSchema,
 });
 
 type EmployeeFieldsInput = z.input<typeof employeeFieldsSchema>;
 type EmployeeFieldsOutput = z.output<typeof employeeFieldsSchema>;
-type MemberOption = Pick<Member, 'id' | 'name' | 'email'>;
 
 export function checkEmployeeFields(values: EmployeeFieldsOutput, context: z.core.$RefinementCtx) {
   if (values.hiredAt && values.terminatedAt && values.terminatedAt < values.hiredAt) {
@@ -47,7 +45,13 @@ export function toEmployeeFormValues(employee?: PersonEmployee | null): Employee
   return {
     hiredAt: employee?.hiredAt ? toDateInputValue(employee.hiredAt) : '',
     terminatedAt: employee?.terminatedAt ? toDateInputValue(employee.terminatedAt) : '',
-    userCompanyId: employee?.member?.id ?? '',
+    userCompanyId: employee?.member
+      ? {
+          value: employee.member.id,
+          label: employee.member.name,
+          description: employee.member.email,
+        }
+      : null,
   };
 }
 
@@ -60,19 +64,18 @@ export function toEmployeeInput(values: EmployeeFieldsOutput): EmployeeInput {
 }
 
 type EmployeeFieldsProps = {
-  members?: MemberOption[];
-  currentMember?: MemberOption | null;
+  canSearchMembers?: boolean;
+  hasCurrentMember?: boolean;
   showTermination?: boolean;
 };
 
 export function EmployeeFields({
-  members,
-  currentMember,
+  canSearchMembers = false,
+  hasCurrentMember = false,
   showTermination = false,
 }: EmployeeFieldsProps) {
   const { control } = useFormContext<EmployeeFieldsInput>();
   const hiredAt = useWatch({ control, name: 'hiredAt' });
-  const memberOptions = members ?? (currentMember ? [currentMember] : []);
 
   return (
     <div className='grid gap-5 sm:grid-cols-2'>
@@ -87,19 +90,17 @@ export function EmployeeFields({
           description='Preencha quando a pessoa sair da empresa.'
         />
       )}
-      {memberOptions.length > 0 && (
-        <FormSelect
+      {(canSearchMembers || hasCurrentMember) && (
+        <FormAsyncCombobox
           control={control}
           name='userCompanyId'
           label='Membro da equipe'
-          options={memberOptions.map(({ id, name, email }) => ({
-            value: id,
-            label: `${name} (${email})`,
-          }))}
+          source='members'
           emptyOption='Sem vínculo'
-          disabled={!members}
+          searchPlaceholder='Buscar pelo nome ou e-mail'
+          disabled={!canSearchMembers}
           description={
-            members
+            canSearchMembers
               ? 'Vincule quando o funcionário também acessa o sistema.'
               : 'Só quem tem acesso à equipe pode trocar o vínculo.'
           }
@@ -114,7 +115,7 @@ type EmployeeFormProps = {
   personId: string;
   listHref: string;
   employee?: PersonEmployee;
-  members?: MemberOption[];
+  canSearchMembers?: boolean;
   action?: ReactNode;
 };
 
@@ -122,7 +123,7 @@ export default function EmployeeForm({
   personId,
   listHref,
   employee,
-  members,
+  canSearchMembers = false,
   action,
 }: EmployeeFormProps) {
   const returnToList = useReturnToList(listHref);
@@ -205,8 +206,8 @@ export default function EmployeeForm({
         createLabel='Tornar funcionário'
       >
         <EmployeeFields
-          members={members}
-          currentMember={employee?.member}
+          canSearchMembers={canSearchMembers}
+          hasCurrentMember={Boolean(employee?.member)}
           showTermination={Boolean(employee)}
         />
       </FormCard>
