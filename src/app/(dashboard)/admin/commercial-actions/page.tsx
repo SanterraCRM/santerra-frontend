@@ -100,9 +100,9 @@ export default async function CommercialActionsPage({ searchParams }: Commercial
       <PageHeader
         icon={Megaphone}
         title='Ações comerciais'
-        description='Ações da equipe nos eventos, pagas com a carteira de um membro.'
+        description='Ações da equipe em dias de campo, feiras e outros eventos, pagas com a carteira de um membro.'
         actions={createAction}
-        searchPlaceholder='Buscar pela descrição ou pelo evento'
+        searchPlaceholder='Buscar pela descrição ou pelo tipo de evento'
         filters={<ListFilters filters={filterDefinitions} values={filters} />}
       />
 
@@ -115,7 +115,7 @@ export default async function CommercialActionsPage({ searchParams }: Commercial
           subtitle: formatGuestsCount,
         }}
         columns={[
-          { header: 'Evento', visibleFrom: 'md', cell: (action) => action.event.name },
+          { header: 'Tipo de evento', visibleFrom: 'md', cell: (action) => action.event.name },
           { header: 'Responsável', visibleFrom: 'xl', cell: (action) => action.responsible.name },
           { header: 'Período', visibleFrom: 'lg', cell: formatPeriod },
           {

@@ -8,8 +8,8 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { type FormCheckboxOption, FormCheckboxGroup } from '@/components/form/form-checkbox-group';
 import { FormInput } from '@/components/form/form-input';
+import { type FormMultiSelectOption, FormMultiSelect } from '@/components/form/form-multi-select';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
@@ -27,7 +27,7 @@ const inviteFormSchema = z.object({
 type InviteFormValues = z.output<typeof inviteFormSchema>;
 
 type InviteMemberDialogProps = {
-  roleOptions: FormCheckboxOption[] | null;
+  roleOptions: FormMultiSelectOption[] | null;
 };
 
 export function InviteMemberDialog({ roleOptions }: InviteMemberDialogProps) {
@@ -114,13 +114,15 @@ export function InviteMemberDialog({ roleOptions }: InviteMemberDialogProps) {
           placeholder='nome@exemplo.com'
         />
         {roleOptions && (
-          <FormCheckboxGroup
+          <FormMultiSelect
             control={control}
             name='roleIds'
             label='Cargos'
-            description='A pessoa entra com as permissões dos cargos marcados.'
             options={roleOptions}
-            emptyMessage='Nenhum cargo cadastrado. A pessoa entra sem permissões até receber um cargo.'
+            placeholder='Selecione os cargos'
+            searchPlaceholder='Buscar cargo…'
+            emptyMessage='Nenhum cargo cadastrado.'
+            description='A pessoa entra com as permissões dos cargos escolhidos. Sem cargo, ela entra sem permissões até receber um.'
           />
         )}
       </form>

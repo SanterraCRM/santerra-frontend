@@ -4,14 +4,12 @@ import type { ReactNode } from 'react';
 import { type Control, Controller, type FieldPath, type FieldValues } from 'react-hook-form';
 
 import { Field, FieldDescription, FieldError } from '@/components/ui/field';
+import type { ComboboxOption } from '@/lib/combobox-sources';
 
 import { Combobox } from './combobox';
 import { FormLabel } from './form-label';
 
-export type FormMultiSelectOption = {
-  value: string;
-  label: string;
-};
+export type FormMultiSelectOption = Pick<ComboboxOption, 'value' | 'label' | 'description' | 'disabled'>;
 
 type FormMultiSelectProps<TValues extends FieldValues, TContext, TTransformed> = {
   control: Control<TValues, TContext, TTransformed>;

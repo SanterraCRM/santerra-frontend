@@ -73,11 +73,11 @@ export default async function AdminPage() {
           )}
           {actions && (
             <ChartCard
-              title={`Gasto em ${getMonthName(actions.month)} por evento`}
+              title={`Gasto em ${getMonthName(actions.month)} por tipo de evento`}
               description='Valor das ações comerciais com início neste mês.'
             >
               <BarList
-                label='Gasto do mês por evento'
+                label='Gasto do mês por tipo de evento'
                 items={getEventSpendingItems(actions)}
                 formatValue={formatCurrency}
                 emptyMessage='Nenhuma ação comercial com início neste mês.'

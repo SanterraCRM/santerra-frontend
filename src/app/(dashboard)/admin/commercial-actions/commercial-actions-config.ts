@@ -31,7 +31,7 @@ export function getActionFilters({
     filters.push({
       type: 'search',
       key: 'eventId',
-      label: 'Evento',
+      label: 'Tipo de evento',
       source: 'events',
       selected: event,
     });
@@ -65,9 +65,9 @@ export function getActionFilters({
 export const ACTION_EMPTY_TEXTS: ListEmptyStateTexts = {
   notFoundTitle: 'Nenhuma ação encontrada',
   filtersDescription: 'Nenhuma ação comercial corresponde aos filtros aplicados.',
-  searchHint: 'Busque pela descrição ou pelo nome do evento.',
+  searchHint: 'Busque pela descrição ou pelo nome do tipo de evento.',
   emptyTitle: 'Nenhuma ação comercial cadastrada',
-  emptyDescription: 'Cadastre a primeira ação comercial de um evento.',
+  emptyDescription: 'Cadastre a primeira ação comercial, como um dia de campo ou uma feira.',
   emptyReadOnlyDescription: 'Quando houver ações comerciais cadastradas, elas aparecerão aqui.',
 };
 
@@ -79,7 +79,7 @@ const ACTION_DELETE_TEXTS: DeleteDialogTexts = {
 };
 
 export function getActionTitle(action: Pick<CommercialAction, 'description' | 'event'>): string {
-  return action.description || `Ação no evento ${action.event.name}`;
+  return action.description || `Ação de ${action.event.name}`;
 }
 
 export function getActionDeleteTexts(

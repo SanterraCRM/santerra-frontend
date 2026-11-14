@@ -86,7 +86,7 @@ export default async function CommercialActionPage({ params }: CommercialActionP
         <RecordDetails
           title='Dados da ação'
           fields={[
-            { label: 'Evento', value: action.event.name },
+            { label: 'Tipo de evento', value: action.event.name },
             { label: 'Nº da nota', value: action.invoiceNumber },
             { label: 'Descrição', value: action.description, wide: true },
             { label: 'Início', value: formatOptionalDate(action.initialDate) },

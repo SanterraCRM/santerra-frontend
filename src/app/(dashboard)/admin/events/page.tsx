@@ -19,7 +19,7 @@ import type { EventListItem } from '@/types/event';
 import { EVENT_DELETE_TEXTS, EVENT_EMPTY_TEXTS, EVENT_FILTERS } from './events-config';
 
 export const metadata: Metadata = {
-  title: 'Eventos',
+  title: 'Tipos de evento',
 };
 
 type EventsPageProps = {
@@ -49,7 +49,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
   const createAction = hasPermission(session, 'events.create') && (
     <Button href='/admin/events/new'>
       <Plus />
-      Novo evento
+      Novo tipo de evento
     </Button>
   );
 
@@ -57,8 +57,8 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
     <div className='flex flex-col gap-6'>
       <PageHeader
         icon={CalendarDays}
-        title='Eventos'
-        description='Cadastre os eventos em que a sua empresa faz ações comerciais, como dias de campo e feiras.'
+        title='Tipos de evento'
+        description='Cadastre os tipos de evento em que a sua empresa faz ações comerciais, como dias de campo e feiras.'
         actions={createAction}
         searchPlaceholder='Buscar por nome ou descrição'
         filters={<ListFilters filters={EVENT_FILTERS} values={filters} />}
@@ -68,7 +68,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         rows={events.data}
         rowHref={(event) => `/admin/events/${event.id}`}
         primary={{
-          header: 'Evento',
+          header: 'Tipo de evento',
           title: (event) => event.name,
           subtitle: (event) => event.description ?? 'Sem descrição',
         }}

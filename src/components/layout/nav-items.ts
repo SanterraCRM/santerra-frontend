@@ -96,7 +96,7 @@ export const NAV_SECTIONS: NavSection[] = [
             permission: 'commercial-actions.read',
           },
           {
-            title: 'Eventos',
+            title: 'Tipos de evento',
             href: '/admin/events',
             icon: CalendarDays,
             permission: 'events.read',

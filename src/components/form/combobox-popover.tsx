@@ -110,7 +110,7 @@ export function ComboboxPopover({
   const listRef = useRef<HTMLDivElement>(null);
   const [activeValue, setActiveValue] = useState('');
   const selectedValues = selected.map((option) => option.value);
-  const optionValues = options.map((option) => option.value);
+  const optionValues = options.filter((option) => !option.disabled).map((option) => option.value);
   const showsEmptyOption = Boolean(emptyOption) && !search?.value.trim();
   const itemValues = showsEmptyOption ? [EMPTY_OPTION_VALUE, ...optionValues] : optionValues;
   const highlightedValue = itemValues.includes(activeValue) ? activeValue : (itemValues[0] ?? '');
@@ -245,7 +245,7 @@ export function ComboboxPopover({
             onScroll={handleScroll}
             aria-multiselectable={multiple || undefined}
           >
-            {itemValues.length > 0 && (
+            {(showsEmptyOption || options.length > 0) && (
               <CommandGroup>
                 {showsEmptyOption && (
                   <CommandItem value={EMPTY_OPTION_VALUE} onSelect={onClear}>
@@ -260,6 +260,7 @@ export function ComboboxPopover({
                     <CommandItem
                       key={option.value}
                       value={option.value}
+                      disabled={option.disabled}
                       onSelect={() => onSelect(option)}
                       aria-checked={multiple ? isSelected : undefined}
                     >
@@ -268,7 +269,7 @@ export function ComboboxPopover({
                       <span className='min-w-0'>
                         <span className='block truncate'>{option.label}</span>
                         {option.description && (
-                          <span className='block truncate text-xs text-muted-foreground'>
+                          <span className='line-clamp-2 text-xs text-muted-foreground'>
                             {option.description}
                           </span>
                         )}

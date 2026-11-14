@@ -11,6 +11,7 @@ export type ComboboxOption = {
   label: string;
   description?: string;
   icon?: ReactNode;
+  disabled?: boolean;
   data?: Record<string, unknown>;
 };
 

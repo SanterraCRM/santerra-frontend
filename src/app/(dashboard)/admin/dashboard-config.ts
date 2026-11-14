@@ -79,7 +79,7 @@ export function getDashboardStats({ producers, trips, actions, wallets }: Dashbo
       description:
         actions.byEvent.length === 0
           ? 'Nenhuma ação com início neste mês'
-          : `Em ${countLabel(actions.byEvent.length, 'evento', 'eventos')}`,
+          : `Em ${countLabel(actions.byEvent.length, 'tipo de evento', 'tipos de evento')}`,
       icon: Megaphone,
     });
   }

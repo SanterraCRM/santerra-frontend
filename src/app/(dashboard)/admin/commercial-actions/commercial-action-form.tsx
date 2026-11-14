@@ -37,7 +37,7 @@ import { COMMERCIAL_ACTIONS_HREF } from './commercial-actions-config';
 
 const actionFormSchema = z
   .object({
-    eventId: requiredOptionSchema('Selecione o evento'),
+    eventId: requiredOptionSchema('Selecione o tipo de evento'),
     description: optionalTextSchema,
     initialDate: optionalDateSchema,
     finalDate: optionalDateSchema,
@@ -180,7 +180,7 @@ export default function CommercialActionForm({
   return (
     <FormCard
       title='Dados da ação'
-      description='Evento, valor, convidados, equipe e documentos da ação comercial.'
+      description='Tipo de evento, valor, convidados, equipe e documentos da ação comercial.'
       onSubmit={handleSubmit(handleSave)}
       errorMessage={errorMessage}
       isEditing={Boolean(action)}
@@ -191,17 +191,20 @@ export default function CommercialActionForm({
       createLabel='Cadastrar ação'
     >
       <div className='flex flex-col gap-6'>
-        <FormSection title='Dados gerais' description='Evento, descrição, período e nota fiscal.'>
+        <FormSection
+          title='Dados gerais'
+          description='Tipo de evento, descrição, período e nota fiscal.'
+        >
           <FormAsyncCombobox
             control={control}
             name='eventId'
-            label='Evento'
+            label='Tipo de evento'
             required
             source='events'
-            placeholder='Selecione o evento'
-            searchPlaceholder='Buscar evento'
+            placeholder='Selecione o tipo de evento'
+            searchPlaceholder='Buscar tipo de evento'
             disabled={!hasEvents}
-            description={!hasEvents && 'Cadastre um evento antes da ação.'}
+            description={!hasEvents && 'Cadastre um tipo de evento antes da ação.'}
           />
           <FormInput
             control={control}

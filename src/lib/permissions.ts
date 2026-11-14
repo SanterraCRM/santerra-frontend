@@ -52,7 +52,7 @@ export const PERMISSION_RESOURCE_GROUPS: PermissionResourceGroup[] = [
     resources: [
       { key: 'commercial-trips', label: 'Visitas' },
       { key: 'commercial-actions', label: 'Ações comerciais' },
-      { key: 'events', label: 'Eventos' },
+      { key: 'events', label: 'Tipos de evento' },
       { key: 'wallets', label: 'Carteiras' },
     ],
   },
