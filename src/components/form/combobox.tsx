@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, type Ref, useState } from 'react';
+import { type ReactElement, type ReactNode, type Ref, useState } from 'react';
 
 import type { ComboboxOption } from '@/lib/combobox-sources';
 
@@ -44,6 +44,8 @@ export type ComboboxProps = {
   invalid?: boolean;
   onBlur?: () => void;
   triggerRef?: Ref<HTMLButtonElement>;
+  trigger?: ReactElement;
+  side?: 'bottom' | 'right';
 };
 
 export function Combobox({

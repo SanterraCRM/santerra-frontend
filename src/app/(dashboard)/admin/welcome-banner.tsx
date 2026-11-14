@@ -1,6 +1,9 @@
 import { CalendarDays } from 'lucide-react';
 import Image from 'next/image';
 
+import { CompanyLogo } from '@/components/layout/company-logo';
+import type { SessionCompany } from '@/types/next-auth';
+
 const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   weekday: 'long',
   day: 'numeric',
@@ -10,9 +13,10 @@ const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
 
 type WelcomeBannerProps = {
   firstName: string;
+  company: SessionCompany | null;
 };
 
-export default function WelcomeBanner({ firstName }: WelcomeBannerProps) {
+export default function WelcomeBanner({ firstName, company }: WelcomeBannerProps) {
   const today = dateFormatter.format(new Date());
 
   return (
@@ -51,14 +55,22 @@ export default function WelcomeBanner({ firstName }: WelcomeBannerProps) {
             <span className='absolute -top-1 left-1/2 size-2 -translate-x-1/2 rounded-full bg-white shadow-[0_0_12px_2px_rgba(255,255,255,0.7)]' />
           </div>
           <div className='absolute inset-2.5 rounded-full bg-white/10 ring-1 ring-white/25 backdrop-blur-sm md:inset-4' />
-          <Image
-            src='/logo-mark-white.png'
-            alt=''
-            width={139}
-            height={160}
-            priority
-            className='relative h-auto w-10 drop-shadow-[0_16px_24px_rgba(15,38,80,0.3)] motion-safe:animate-float sm:w-14 md:w-20 lg:w-24'
-          />
+          {company?.logo ? (
+            <CompanyLogo
+              company={company}
+              size='xl'
+              className='relative size-12 shadow-[0_16px_24px_rgba(15,38,80,0.3)] motion-safe:animate-float sm:size-16 md:size-24 lg:size-28'
+            />
+          ) : (
+            <Image
+              src='/logo-mark-white.png'
+              alt=''
+              width={139}
+              height={160}
+              priority
+              className='relative h-auto w-10 drop-shadow-[0_16px_24px_rgba(15,38,80,0.3)] motion-safe:animate-float sm:w-14 md:w-20 lg:w-24'
+            />
+          )}
         </div>
       </div>
     </section>

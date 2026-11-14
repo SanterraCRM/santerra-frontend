@@ -3,6 +3,7 @@
 import { CheckIcon, ChevronDownIcon } from 'lucide-react';
 import {
   type KeyboardEvent,
+  type ReactElement,
   type ReactNode,
   type Ref,
   type UIEvent,
@@ -77,6 +78,8 @@ export type ComboboxPopoverProps = {
   disabled?: boolean;
   invalid?: boolean;
   triggerRef?: Ref<HTMLButtonElement>;
+  trigger?: ReactElement;
+  side?: 'bottom' | 'right';
 };
 
 export function ComboboxPopover({
@@ -98,6 +101,8 @@ export function ComboboxPopover({
   disabled,
   invalid,
   triggerRef,
+  trigger,
+  side = 'bottom',
 }: ComboboxPopoverProps) {
   const contentId = useId();
   const commandRef = useRef<HTMLDivElement>(null);
@@ -184,27 +189,32 @@ export function ComboboxPopover({
 
   return (
     <Popover open={isOpen} onOpenChange={handleOpenChange}>
-      <PopoverTrigger asChild>
-        <button
-          ref={triggerRef}
-          id={id}
-          type='button'
-          role='combobox'
-          aria-haspopup='listbox'
-          aria-expanded={isOpen}
-          aria-controls={contentId}
-          aria-invalid={invalid}
-          disabled={disabled}
-          onKeyDown={handleTriggerKeyDown}
-          className='flex min-h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent py-1.5 pr-2 pl-2.5 text-left text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40'
-        >
-          {renderValue()}
-          <ChevronDownIcon className='pointer-events-none size-4 shrink-0 text-muted-foreground' />
-        </button>
+      <PopoverTrigger
+        asChild
+        role='combobox'
+        aria-haspopup='listbox'
+        aria-expanded={isOpen}
+        aria-controls={contentId}
+        aria-invalid={invalid}
+        disabled={disabled}
+        onKeyDown={handleTriggerKeyDown}
+      >
+        {trigger ?? (
+          <button
+            ref={triggerRef}
+            id={id}
+            type='button'
+            className='flex min-h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent py-1.5 pr-2 pl-2.5 text-left text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40'
+          >
+            {renderValue()}
+            <ChevronDownIcon className='pointer-events-none size-4 shrink-0 text-muted-foreground' />
+          </button>
+        )}
       </PopoverTrigger>
       <PopoverContent
         id={contentId}
         align='start'
+        side={side}
         onOpenAutoFocus={handleOpenAutoFocus}
         className='w-(--radix-popover-trigger-width) min-w-64 gap-0 p-0'
       >
@@ -254,6 +264,7 @@ export function ComboboxPopover({
                       aria-checked={multiple ? isSelected : undefined}
                     >
                       <SelectionMark multiple={multiple} isSelected={isSelected} />
+                      {option.icon}
                       <span className='min-w-0'>
                         <span className='block truncate'>{option.label}</span>
                         {option.description && (

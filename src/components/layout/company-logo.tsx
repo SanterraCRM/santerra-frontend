@@ -16,18 +16,19 @@ type CompanyLogoProps = {
     name: string;
     logo: string | null;
   };
+  src?: string | null;
   size?: keyof typeof SIZES;
   className?: string;
 };
 
-export function CompanyLogo({ company, size = 'md', className }: CompanyLogoProps) {
-  const src = getCompanyLogoUrl(company);
+export function CompanyLogo({ company, src, size = 'md', className }: CompanyLogoProps) {
+  const imageSrc = src === undefined ? getCompanyLogoUrl(company) : src;
 
   return (
     <Avatar className={cn(SIZES[size].root, className)}>
-      {src && (
+      {imageSrc && (
         <AvatarImage
-          src={src}
+          src={imageSrc}
           alt=''
           className='rounded-[inherit] bg-white object-contain'
         />

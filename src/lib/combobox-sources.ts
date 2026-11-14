@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import { apiRequest } from './api';
 import { formatCurrency, formatNationalId, normalizeDocumentSearch } from './format';
 
@@ -8,6 +10,7 @@ export type ComboboxOption = {
   value: string;
   label: string;
   description?: string;
+  icon?: ReactNode;
   data?: Record<string, unknown>;
 };
 

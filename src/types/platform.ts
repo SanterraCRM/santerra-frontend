@@ -3,6 +3,7 @@ export type PlatformCompany = {
   name: string;
   description: string | null;
   logo: string | null;
+  active: boolean;
   owner: { id: string; name: string; email: string } | null;
   membersCount: number;
   createdAt: string;
@@ -12,7 +13,14 @@ export type PlatformCompany = {
 export type PlatformCompanyInput = {
   name: string;
   description: string | null;
-  ownerEmail?: string;
+  active: boolean;
+};
+
+export type NewPlatformCompanyInput = {
+  name: string;
+  description: string | null;
+  ownerEmail: string;
+  logo: File | null;
 };
 
 export type PlatformUser = {

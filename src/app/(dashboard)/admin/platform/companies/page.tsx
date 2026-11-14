@@ -6,10 +6,13 @@ import { CompanyLogo } from '@/components/layout/company-logo';
 import { PageHeader } from '@/components/layout/page-header';
 import { DataTable } from '@/components/list/data-table';
 import { ListEmptyState } from '@/components/list/list-empty-state';
+import { ListFilters } from '@/components/list/list-filters';
 import { ListPagination } from '@/components/list/list-pagination';
+import { StatusBadge } from '@/components/list/status-badge';
 import { Button } from '@/components/ui/button';
 import { apiRequest } from '@/lib/api';
 import { formatDate } from '@/lib/format';
+import { parseFilters, toApiFilters } from '@/lib/list-filters';
 import { buildApiListQuery, buildListHref, parseListParams } from '@/lib/list-params';
 import { requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
@@ -19,6 +22,7 @@ import {
   formatMembersCount,
   PLATFORM_COMPANIES_HREF,
   PLATFORM_COMPANY_EMPTY_TEXTS,
+  PLATFORM_COMPANY_FILTERS,
 } from './companies-config';
 
 export const metadata: Metadata = {
@@ -33,8 +37,12 @@ export default async function PlatformCompaniesPage({ searchParams }: PlatformCo
   const session = await requireSession();
   const params = await searchParams;
   const { page, pageSize, search: searchTerm } = parseListParams(params);
-  const listQuery = { search: searchTerm };
-  const query = buildApiListQuery({ page, pageSize, search: searchTerm });
+  const filters = parseFilters(params, PLATFORM_COMPANY_FILTERS);
+  const listQuery = { search: searchTerm, ...filters };
+  const query = buildApiListQuery(
+    { page, pageSize, search: searchTerm },
+    toApiFilters(filters, PLATFORM_COMPANY_FILTERS),
+  );
 
   const companies = await apiRequest<Paginated<PlatformCompany>>(`/companies?${query}`, {
     token: session.accessToken,
@@ -59,6 +67,7 @@ export default async function PlatformCompaniesPage({ searchParams }: PlatformCo
         description='Todas as empresas da plataforma, com o dono e o tamanho da equipe.'
         actions={createAction}
         searchPlaceholder='Buscar por nome ou descrição'
+        filters={<ListFilters filters={PLATFORM_COMPANY_FILTERS} values={filters} />}
       />
 
       <DataTable
@@ -71,6 +80,15 @@ export default async function PlatformCompaniesPage({ searchParams }: PlatformCo
           avatar: (company) => <CompanyLogo company={company} />,
         }}
         columns={[
+          {
+            header: 'Situação',
+            cell: (company) => (
+              <StatusBadge
+                label={company.active ? 'Ativa' : 'Inativa'}
+                tone={company.active ? 'success' : 'neutral'}
+              />
+            ),
+          },
           {
             header: 'Dono',
             visibleFrom: 'sm',
@@ -93,7 +111,7 @@ export default async function PlatformCompaniesPage({ searchParams }: PlatformCo
             icon={Building}
             pathname={PLATFORM_COMPANIES_HREF}
             searchTerm={searchTerm}
-            hasFilters={false}
+            hasFilters={Object.values(filters).some(Boolean)}
             createAction={createAction}
             texts={PLATFORM_COMPANY_EMPTY_TEXTS}
           />

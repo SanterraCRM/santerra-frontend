@@ -4,6 +4,7 @@ export const LOGIN_ERRORS = {
   NO_COMPANY: 'NO_COMPANY',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
   SESSION_ENDED: 'SESSION_ENDED',
+  COMPANY_DEACTIVATED: 'COMPANY_DEACTIVATED',
   UNKNOWN: 'UNKNOWN',
 } as const;
 
@@ -17,6 +18,8 @@ const LOGIN_ERROR_MESSAGES: Record<LoginErrorCode, string> = {
   SERVICE_UNAVAILABLE: 'Não foi possível conectar ao servidor. Tente novamente em instantes.',
   SESSION_ENDED:
     'Sua sessão foi encerrada, porque o seu acesso mudou ou expirou. Entre novamente para continuar.',
+  COMPANY_DEACTIVATED:
+    'A empresa foi inativada, e o acesso da equipe a ela foi encerrado. Entre de novo para acessar outra empresa.',
   UNKNOWN: 'Não foi possível entrar agora. Tente novamente em instantes.',
 };
 

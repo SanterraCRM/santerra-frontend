@@ -36,7 +36,7 @@ export default async function AdminPage() {
 
   return (
     <div className='flex flex-col gap-6'>
-      <WelcomeBanner firstName={firstName} />
+      <WelcomeBanner firstName={firstName} company={session.company} />
 
       {stats.length > 0 && (
         <ul aria-label='Indicadores' className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>

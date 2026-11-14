@@ -44,6 +44,10 @@ export const optionalTextSchema = z
 
 export const optionalDecimalSchema = z.string().transform(parseDecimal);
 
+export const optionalFileSchema = z.custom<File | null>(
+  (value) => value === null || value instanceof File,
+);
+
 export const optionalMoneySchema = z.string().transform(parseMoney);
 
 export const comboboxOptionSchema = z.object({
