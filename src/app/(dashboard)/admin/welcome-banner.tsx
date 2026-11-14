@@ -1,8 +1,9 @@
 import { CalendarDays } from 'lucide-react';
-import Image from 'next/image';
 
-import { CompanyLogo } from '@/components/layout/company-logo';
-import type { SessionCompany } from '@/types/next-auth';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/cn';
+
+import type { DashboardShortcut } from './dashboard-config';
 
 const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   weekday: 'long',
@@ -11,12 +12,18 @@ const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   timeZone: 'America/Sao_Paulo',
 });
 
+const SHORTCUT_CLASS = 'focus-visible:ring-white/60 md:w-full md:justify-start';
+const MAIN_SHORTCUT_CLASS =
+  'bg-white text-brand-700 shadow-sm hover:bg-white/90 dark:bg-white dark:text-brand-800 dark:hover:bg-white/90';
+const SECONDARY_SHORTCUT_CLASS =
+  'bg-white/15 text-white ring-1 ring-white/30 backdrop-blur-sm hover:bg-white/25 hover:text-white';
+
 type WelcomeBannerProps = {
   firstName: string;
-  company: SessionCompany | null;
+  shortcuts: DashboardShortcut[];
 };
 
-export default function WelcomeBanner({ firstName, company }: WelcomeBannerProps) {
+export default function WelcomeBanner({ firstName, shortcuts }: WelcomeBannerProps) {
   const today = dateFormatter.format(new Date());
 
   return (
@@ -27,7 +34,7 @@ export default function WelcomeBanner({ firstName, company }: WelcomeBannerProps
         <div className='absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.14)_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_at_top_right,black_15%,transparent_65%)]' />
       </div>
 
-      <div className='flex flex-col-reverse gap-8 md:flex-row md:items-center md:justify-between'>
+      <div className='flex flex-col gap-6 md:flex-row md:items-end md:justify-between'>
         <div className='max-w-xl'>
           <p className='inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold ring-1 ring-white/25 backdrop-blur-sm animate-fade-up [animation-delay:80ms]'>
             <CalendarDays className='size-3.5' />
@@ -50,28 +57,27 @@ export default function WelcomeBanner({ firstName, company }: WelcomeBannerProps
           </p>
         </div>
 
-        <div className='relative flex size-24 shrink-0 items-center justify-center animate-fade-up [animation-delay:120ms] sm:size-32 md:size-44 lg:size-52'>
-          <div className='absolute inset-0 rounded-full border border-dashed border-white/35 motion-safe:animate-orbit'>
-            <span className='absolute -top-1 left-1/2 size-2 -translate-x-1/2 rounded-full bg-white shadow-[0_0_12px_2px_rgba(255,255,255,0.7)]' />
-          </div>
-          <div className='absolute inset-2.5 rounded-full bg-white/10 ring-1 ring-white/25 backdrop-blur-sm md:inset-4' />
-          {company?.logo ? (
-            <CompanyLogo
-              company={company}
-              size='xl'
-              className='relative size-12 shadow-[0_16px_24px_rgba(15,38,80,0.3)] motion-safe:animate-float sm:size-16 md:size-24 lg:size-28'
-            />
-          ) : (
-            <Image
-              src='/logo-mark-white.png'
-              alt=''
-              width={139}
-              height={160}
-              priority
-              className='relative h-auto w-10 drop-shadow-[0_16px_24px_rgba(15,38,80,0.3)] motion-safe:animate-float sm:w-14 md:w-20 lg:w-24'
-            />
-          )}
-        </div>
+        {shortcuts.length > 0 && (
+          <nav
+            aria-label='Atalhos'
+            className='flex flex-wrap gap-2 animate-fade-up [animation-delay:320ms] md:w-56 md:shrink-0 md:flex-col'
+          >
+            {shortcuts.map(({ label, href, icon: Icon }, index) => (
+              <Button
+                key={href}
+                href={href}
+                size='lg'
+                className={cn(
+                  SHORTCUT_CLASS,
+                  index === 0 ? MAIN_SHORTCUT_CLASS : SECONDARY_SHORTCUT_CLASS,
+                )}
+              >
+                <Icon />
+                {label}
+              </Button>
+            ))}
+          </nav>
+        )}
       </div>
     </section>
   );

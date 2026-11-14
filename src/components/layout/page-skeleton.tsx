@@ -82,6 +82,56 @@ function FormSkeleton({ hasActions }: FormSkeletonProps) {
   );
 }
 
+const DASHBOARD_ROWS = 2;
+
+type CardSkeletonProps = {
+  lines: number;
+  className?: string;
+};
+
+function CardSkeleton({ lines, className }: CardSkeletonProps) {
+  return (
+    <div className={cn('rounded-xl border bg-card p-6', className)}>
+      <Skeleton className='h-5 w-40' />
+      <Skeleton className='mt-2 h-4 w-56 max-w-full' />
+      <div className='mt-6 flex flex-col gap-4'>
+        {Array.from({ length: lines }, (_, index) => (
+          <div key={index} className='flex items-center gap-3'>
+            <Skeleton className='size-10 shrink-0 rounded-lg' />
+            <div className='flex flex-1 flex-col gap-1.5'>
+              <Skeleton className='h-4 w-40 max-w-full' />
+              <Skeleton className='h-3 w-28 max-w-full' />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function DashboardSkeleton() {
+  return (
+    <div aria-busy='true' aria-label='Carregando os indicadores' className='flex flex-col gap-6'>
+      <div className='grid grid-cols-2 gap-4 xl:grid-cols-4'>
+        {Array.from({ length: 4 }, (_, index) => (
+          <div key={index} className='rounded-xl border bg-card p-4 sm:p-5'>
+            <Skeleton className='size-10 rounded-xl' />
+            <Skeleton className='mt-4 h-4 w-24 max-w-full' />
+            <Skeleton className='mt-2 h-7 w-32 max-w-full' />
+            <Skeleton className='mt-2 h-3 w-28 max-w-full' />
+          </div>
+        ))}
+      </div>
+      {Array.from({ length: DASHBOARD_ROWS }, (_, row) => (
+        <div key={row} className='grid gap-6 xl:grid-cols-3'>
+          <CardSkeleton lines={4} className='xl:col-span-2' />
+          <CardSkeleton lines={3} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function PageSkeleton({ variant }: PageSkeletonProps) {
   const pathname = usePathname();
   const lastSegment = pathname.split('/').pop() ?? '';
