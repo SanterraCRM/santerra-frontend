@@ -93,7 +93,7 @@ export default async function EventPage({ params }: EventPageProps) {
         <RelatedRecords
           title='Ações deste evento'
           description='As ações comerciais mais recentes feitas neste evento.'
-          records={toActionRecords(actions.data, 'event')}
+          records={toActionRecords(actions.data)}
           total={actions.meta.total}
           emptyMessage='Nenhuma ação comercial neste evento.'
           viewAllHref={`${COMMERCIAL_ACTIONS_HREF}?eventId=${event.id}`}

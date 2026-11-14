@@ -2,15 +2,15 @@ import { useSession } from 'next-auth/react';
 
 import { useMutation } from '@/hooks/use-mutation';
 import { apiRequest } from '@/lib/api';
-import type { Wallet } from '@/types/wallet';
+import type { Wallet, WalletAdjustmentInput } from '@/types/wallet';
 
-export function useCreditWallet() {
+export function useAdjustWallet() {
   const { data: session } = useSession();
 
-  return useMutation((id: string, amount: number) =>
-    apiRequest<Wallet>(`/wallets/${id}/credits`, {
+  return useMutation((id: string, input: WalletAdjustmentInput) =>
+    apiRequest<Wallet>(`/wallets/${id}/adjustments`, {
       method: 'POST',
-      body: { amount },
+      body: input,
       token: session?.accessToken,
     }),
   );

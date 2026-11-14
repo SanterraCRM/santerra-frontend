@@ -117,24 +117,16 @@ export function formatNames(relations: CommercialActionRelation[]): string {
   return relations.map((relation) => relation.name).join(', ');
 }
 
-export function toActionRecords(
-  actions: CommercialAction[],
-  perspective: 'event' | 'wallet',
-): RelatedRecord[] {
+export function toActionRecords(actions: CommercialAction[]): RelatedRecord[] {
   return actions.map((action) => {
-    const period = formatPeriod(action);
-    const parts =
-      perspective === 'event'
-        ? [period, `Responsável: ${action.responsible.name}`]
-        : [action.event.name, period];
-    const price = action.price ? formatCurrency(action.price) : undefined;
+    const parts = [formatPeriod(action), `Responsável: ${action.responsible.name}`];
 
     return {
       id: action.id,
       href: `${COMMERCIAL_ACTIONS_HREF}/${action.id}`,
       title: getActionTitle(action),
       subtitle: parts.filter((part) => part !== '—').join(' · '),
-      value: price && perspective === 'wallet' ? `−${price}` : price,
+      value: action.price ? formatCurrency(action.price) : undefined,
     };
   });
 }

@@ -11,6 +11,22 @@ export const PERMISSION_ACTION_LABELS: Record<PermissionAction, string> = {
   delete: 'Excluir',
 };
 
+export type PermissionExtraAction = {
+  action: string;
+  label: string;
+  description: string;
+};
+
+export const PERMISSION_EXTRA_ACTIONS: Record<string, PermissionExtraAction[]> = {
+  wallets: [
+    {
+      action: 'adjust',
+      label: 'Ajustar saldo',
+      description: 'Acrescentar ou diminuir o saldo, com motivo.',
+    },
+  ],
+};
+
 export type PermissionResource = {
   key: string;
   label: string;
