@@ -30,6 +30,7 @@ import type {
   CommercialAction,
   CommercialActionInput,
   CommercialActionRelation,
+  CommercialActionReseller,
 } from '@/types/commercial-action';
 
 import type { ActionFormOptions } from './action-form-options';
@@ -62,6 +63,10 @@ function toOption({ id, name }: CommercialActionRelation): ComboboxOption {
   return { value: id, label: name };
 }
 
+function resellerToOption({ id, name }: CommercialActionReseller): ComboboxOption {
+  return { value: String(id), label: name };
+}
+
 function toFormValues(
   action: CommercialAction | undefined,
   currentWallet: ComboboxOption | null,
@@ -75,7 +80,7 @@ function toFormValues(
     walletId: currentWallet ?? (action ? toOption(action.wallet) : null),
     price: action?.price == null ? '' : toMoneyInputValue(action.price),
     producerGuests: action?.producerGuests.map(toOption) ?? [],
-    resellerGuests: action?.resellerGuests.map(toOption) ?? [],
+    resellerGuests: action?.resellerGuests.map(resellerToOption) ?? [],
     responsible: action ? toOption(action.responsible) : null,
     participants: action?.participants.map(toOption) ?? [],
     files: action?.files ?? [],
@@ -154,7 +159,7 @@ export default function CommercialActionForm({
       responsibleId,
       participantIds: participants.filter((id) => id !== responsibleId),
       ...(canSearchProducers && { producerGuestIds: producerGuests }),
-      ...(canSearchResellers && { resellerGuestIds: resellerGuests }),
+      ...(canSearchResellers && { resellerGuestIds: resellerGuests.map(Number) }),
       ...(attachments && { fileIds: files.map((file) => file.id) }),
     };
 

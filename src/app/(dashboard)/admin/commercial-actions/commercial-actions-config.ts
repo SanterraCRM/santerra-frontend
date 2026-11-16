@@ -113,7 +113,7 @@ export function formatGuestsCount({ producerGuests, resellerGuests }: Commercial
   return count === 1 ? '1 convidado' : `${count} convidados`;
 }
 
-export function formatNames(relations: CommercialActionRelation[]): string {
+export function formatNames(relations: Pick<CommercialActionRelation, 'name'>[]): string {
   return relations.map((relation) => relation.name).join(', ');
 }
 
