@@ -9,6 +9,15 @@ export const RESELLERS_HREF = '/admin/resellers';
 const ACTIVE_FLAG = 1;
 
 export const RESELLER_FILTERS: FilterDefinition[] = [
+  {
+    type: 'select',
+    key: 'isActive',
+    label: 'Situação',
+    options: [
+      { value: 'true', label: 'Ativos' },
+      { value: 'false', label: 'Inativos' },
+    ],
+  },
   { type: 'dateRange', label: 'Data de cadastro', fromKey: 'createdFrom', toKey: 'createdTo' },
   {
     type: 'checkboxes',
