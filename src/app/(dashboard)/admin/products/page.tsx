@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
 import { PageHeader } from '@/components/layout/page-header';
-import { BadgeList } from '@/components/list/badge-list';
 import { DataTable } from '@/components/list/data-table';
+import { ExpandableBadgeList } from '@/components/list/expandable-badge-list';
 import { ListEmptyState } from '@/components/list/list-empty-state';
 import { ListFilters } from '@/components/list/list-filters';
 import { ListPagination } from '@/components/list/list-pagination';
@@ -93,7 +93,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           {
             header: 'Culturas',
             visibleFrom: 'lg',
-            cell: (product) => <BadgeList labels={product.crops} />,
+            cell: (product) => <ExpandableBadgeList labels={product.crops} />,
           },
           {
             header: 'Unidade',

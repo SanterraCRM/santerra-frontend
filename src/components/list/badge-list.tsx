@@ -1,5 +1,8 @@
 import { Badge } from '@/components/ui/badge';
 
+export const BADGE_LIST_ITEM_CLASS =
+  'border-brand-100 bg-brand-50 text-brand-700 dark:border-brand-900 dark:bg-brand-950 dark:text-brand-300';
+
 type BadgeListProps = {
   labels: string[];
 };
@@ -12,11 +15,7 @@ export function BadgeList({ labels }: BadgeListProps) {
   return (
     <span className='flex flex-wrap gap-1'>
       {labels.map((label) => (
-        <Badge
-          key={label}
-          variant='outline'
-          className='border-brand-100 bg-brand-50 text-brand-700 dark:border-brand-900 dark:bg-brand-950 dark:text-brand-300'
-        >
+        <Badge key={label} variant='outline' className={BADGE_LIST_ITEM_CLASS}>
           {label}
         </Badge>
       ))}
