@@ -27,10 +27,11 @@ type PersonRecord = {
   person: { name: string; nationalId: string | null };
 };
 
+// Produto da view do ERP (GET /products): código numérico e campos opcionais.
 type ProductRecord = {
-  id: string;
-  name: string;
-  manufacturer: { name: string };
+  id: number | null;
+  product: string | null;
+  manufacturer: string | null;
 };
 
 type BusinessRecord = {
@@ -101,10 +102,11 @@ export const COMBOBOX_SOURCES = {
   } satisfies ComboboxSource<PersonRecord>,
   products: {
     path: '/products',
-    toOption: ({ id, name, manufacturer }: ProductRecord) => ({
-      value: id,
-      label: name,
-      description: manufacturer.name,
+    toOption: ({ id, product, manufacturer }: ProductRecord) => ({
+      value: String(id),
+      label: product?.trim() || `Produto ${id}`,
+      description: manufacturer ?? undefined,
+      disabled: id === null,
     }),
   } satisfies ComboboxSource<ProductRecord>,
   resellers: {
