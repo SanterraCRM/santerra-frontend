@@ -28,9 +28,16 @@ type PersonRecord = {
 };
 
 type ProductRecord = {
-  id: string;
-  name: string;
-  manufacturer: { name: string };
+  id: number | null;
+  product: string | null;
+  manufacturer: string | null;
+};
+
+type ResellerRecord = {
+  id: number | null;
+  name: string | null;
+  fantasyName: string | null;
+  document: string | null;
 };
 
 type BusinessRecord = {
@@ -101,17 +108,25 @@ export const COMBOBOX_SOURCES = {
   } satisfies ComboboxSource<PersonRecord>,
   products: {
     path: '/products',
-    toOption: ({ id, name, manufacturer }: ProductRecord) => ({
-      value: id,
-      label: name,
-      description: manufacturer.name,
+    toOption: ({ id, product, manufacturer }: ProductRecord) => ({
+      value: String(id),
+      label: product?.trim() || `Produto ${id}`,
+      description: manufacturer ?? undefined,
+      disabled: id === null,
     }),
   } satisfies ComboboxSource<ProductRecord>,
   resellers: {
     path: '/resellers',
     normalizeSearch: normalizeDocumentSearch,
-    toOption: businessToOption,
-  } satisfies ComboboxSource<BusinessRecord>,
+    toOption: ({ id, name, fantasyName, document }: ResellerRecord) => ({
+      value: String(id),
+      label: name || fantasyName || `Revenda ${id}`,
+      description:
+        [fantasyName, document && formatNationalId(document)].filter(Boolean).join(' · ') ||
+        undefined,
+      disabled: id === null,
+    }),
+  } satisfies ComboboxSource<ResellerRecord>,
   manufacturers: {
     path: '/manufacturers',
     params: NAME_ORDER,

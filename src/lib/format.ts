@@ -127,6 +127,18 @@ export function formatDateParts(value: string | Date): { day: string; month: str
   };
 }
 
+const calendarDateFormatters = {
+  short: new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeZone: 'UTC' }),
+  long: new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: 'UTC' }),
+};
+
+export function formatCalendarDate(
+  value: string | Date,
+  style: keyof typeof calendarDateFormatters = 'short',
+): string {
+  return calendarDateFormatters[style].format(new Date(value));
+}
+
 export function toDayBoundary(date: string, boundary: 'start' | 'end'): string {
   const time = boundary === 'start' ? '00:00:00.000' : '23:59:59.999';
 

@@ -3,7 +3,23 @@ import type { Session } from 'next-auth';
 import { apiRequest, hasRecords } from '@/lib/api';
 import { hasPermission } from '@/lib/session';
 import type { Paginated } from '@/types/api';
-import type { ProductRelation } from '@/types/product';
+import type { ProductRelation, ProductViewFilterOptions } from '@/types/product';
+
+const EMPTY_FILTER_OPTIONS: ProductViewFilterOptions = {
+  manufacturers: [],
+  departments: [],
+  sections: [],
+  categories: [],
+  lines: [],
+  crops: [],
+};
+
+// Valores distintos da view de produtos (e da view de culturas) para montar os filtros da lista.
+export function getProductViewFilterOptions(session: Session): Promise<ProductViewFilterOptions> {
+  return apiRequest<ProductViewFilterOptions>('/products/filter-options', {
+    token: session.accessToken,
+  }).catch(() => EMPTY_FILTER_OPTIONS);
+}
 
 export type ProductOptions = {
   hasManufacturers: boolean;

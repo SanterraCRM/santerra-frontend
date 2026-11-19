@@ -29,6 +29,7 @@ import {
 import type {
   CommercialTrip,
   CommercialTripInput,
+  CommercialTripProduct,
   CommercialTripRelation,
 } from '@/types/commercial-trip';
 
@@ -62,6 +63,10 @@ function toOption({ id, name }: CommercialTripRelation): ComboboxOption {
   return { value: id, label: name };
 }
 
+function productToOption({ id, name }: CommercialTripProduct): ComboboxOption {
+  return { value: String(id), label: name };
+}
+
 function toFormValues(trip?: CommercialTrip): TripFormInput {
   return {
     producer: trip ? toOption(trip.producer) : null,
@@ -71,7 +76,7 @@ function toFormValues(trip?: CommercialTrip): TripFormInput {
     expectedDate: trip?.expectedDate ? toDateInputValue(trip.expectedDate) : '',
     tripDate: trip?.tripDate ? toDateInputValue(trip.tripDate) : '',
     harvestIds: trip?.harvestIds ?? [],
-    recommendedProducts: trip?.recommendedProducts?.map(toOption) ?? [],
+    recommendedProducts: trip?.recommendedProducts?.map(productToOption) ?? [],
     performedActionDescription: trip?.performedActionDescription ?? '',
     followUpDetails: trip?.followUpDetails ?? '',
     pendingIssuesDescription: trip?.pendingIssuesDescription ?? '',
@@ -145,7 +150,7 @@ export default function CommercialTripForm({
       performedActionDescription: values.performedActionDescription,
       followUpDetails: values.followUpDetails,
       pendingIssuesDescription: values.pendingIssuesDescription,
-      ...(canReadProducts && { recommendedProductIds: recommendedProducts }),
+      ...(canReadProducts && { recommendedProductIds: recommendedProducts.map(Number) }),
       ...(attachments && { fileIds: files.map((file) => file.id) }),
     };
 
