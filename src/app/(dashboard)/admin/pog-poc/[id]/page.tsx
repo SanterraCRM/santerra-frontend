@@ -60,16 +60,14 @@ export default async function PogPocProductPage({ params }: PogPocProductPagePro
         description='Dados consultados na API externa, disponíveis apenas para consulta.'
         fields={[
           { label: 'Nome', value: product.produto },
-          { label: 'Registros do produto', value: pogPocs.length },
-          { label: 'POG', value: product.pog ?? '—' },
-          { label: 'POC', value: product.poc ?? '—' },
+          { label: 'Registros de POG/POC do produto', value: pogPocs.length },
         ]}
       />
 
       <DataTable
         rows={toPogPocRows(pogPocs)}
         primary={{
-          header: 'Revendas associadas',
+          header: 'Revendas associadas ao produto',
           title: (pogPoc) => pogPoc.reseller?.name ?? 'Revenda não encontrada',
           subtitle: (pogPoc) => formatPogPocCnpj(pogPoc.cnpj),
         }}
