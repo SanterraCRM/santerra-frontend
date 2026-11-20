@@ -46,7 +46,6 @@ export default async function PogPocProductPage({ params }: PogPocProductPagePro
   const [product] = pogPocs;
   const productName = getPogPocProductName(product);
   const canReadResellers = hasPermission(session, 'resellers.read');
-  const resellersCount = new Set(pogPocs.map(({ cnpj }) => cnpj).filter(Boolean)).size;
 
   return (
     <RecordPageLayout
@@ -62,15 +61,14 @@ export default async function PogPocProductPage({ params }: PogPocProductPagePro
         fields={[
           { label: 'Nome', value: product.produto },
           { label: 'Código', value: product.codigo_produto },
-          { label: 'Revendas', value: resellersCount },
-          { label: 'Registros', value: pogPocs.length },
+          { label: 'Registros do produto', value: pogPocs.length },
         ]}
       />
 
       <DataTable
         rows={toPogPocRows(pogPocs)}
         primary={{
-          header: 'Revenda',
+          header: 'Revendas associadas',
           title: (pogPoc) => pogPoc.reseller?.name ?? 'Revenda não encontrada',
           subtitle: (pogPoc) => formatPogPocCnpj(pogPoc.cnpj),
         }}
