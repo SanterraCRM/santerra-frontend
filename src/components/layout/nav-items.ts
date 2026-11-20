@@ -4,6 +4,7 @@ import {
   Building,
   Building2,
   CalendarDays,
+  ChartColumn,
   CircleUserRound,
   Contact,
   Factory,
@@ -118,6 +119,11 @@ export const NAV_SECTIONS: NavSection[] = [
             href: '/admin/products',
             icon: Package,
             permission: 'products.read',
+          },
+          {
+            title: 'POG/POC',
+            href: '/admin/pog-poc',
+            icon: ChartColumn,
           },
           {
             title: 'Grupos de produtos',
