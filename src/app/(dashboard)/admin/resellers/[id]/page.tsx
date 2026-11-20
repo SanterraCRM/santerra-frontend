@@ -23,7 +23,7 @@ type ResellerPageProps = {
   params: Promise<{ id: string }>;
 };
 
-const READ_ONLY_DESCRIPTION = 'Dados sincronizados do ERP, disponíveis apenas para consulta.';
+const READ_ONLY_DESCRIPTION = 'Dados disponíveis apenas para consulta.';
 
 function getReseller(id: string, token: string): Promise<ResellerView> {
   return getRecordOrNotFound<ResellerView>(`/resellers/${id}`, token);

@@ -61,7 +61,7 @@ export default async function PogPocPage({ searchParams }: PogPocPageProps) {
       <PageHeader
         icon={ChartColumn}
         title='POG/POC'
-        description='POG e POC por produto e revenda, consultados na API externa.'
+        description='POG e POC por produto e revenda.'
         searchPlaceholder='Buscar por produto, código ou CNPJ'
         filters={
           filterDefinitions.length > 0 && (

@@ -68,7 +68,7 @@ export default async function ResellersPage({ searchParams }: ResellersPageProps
       <PageHeader
         icon={Store}
         title='Revendas'
-        description='Revendas do ERP que a sua empresa convida para as ações comerciais.'
+        description='Revendas cadastradas clientes da santerra.'
         actions={createAction}
         searchPlaceholder='Buscar por nome ou CNPJ'
         filters={<ListFilters filters={RESELLER_FILTERS} values={filters} />}

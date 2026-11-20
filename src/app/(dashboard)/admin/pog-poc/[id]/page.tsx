@@ -57,7 +57,7 @@ export default async function PogPocProductPage({ params }: PogPocProductPagePro
     >
       <RecordDetails
         title='Produto'
-        description='Dados consultados na API externa, disponíveis apenas para consulta.'
+        description='Dados disponíveis apenas para consulta.'
         fields={[
           { label: 'Nome', value: product.produto },
           { label: 'Registros de POG/POC do produto', value: pogPocs.length },

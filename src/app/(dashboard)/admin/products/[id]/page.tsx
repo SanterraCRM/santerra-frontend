@@ -78,7 +78,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     >
       <RecordDetails
         title='Dados do produto'
-        description='Dados sincronizados do ERP, disponíveis apenas para consulta.'
+        description='Dados disponíveis apenas para consulta.'
         fields={[
           { label: 'Nome', value: product.product },
           { label: 'Código', value: product.id },
