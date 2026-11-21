@@ -70,7 +70,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       <PageHeader
         icon={Package}
         title='Produtos'
-        description='Catálogo de produtos do ERP, com fabricante, classificação e culturas atendidas.'
+        description='Catálogo de produtos, com fabricante, classificação e culturas atendidas.'
         actions={createAction}
         searchPlaceholder='Buscar por nome'
         filters={<ListFilters filters={filterDefinitions} values={filters} />}
