@@ -8,6 +8,12 @@ const dateFormatters = {
   long: new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: TIME_ZONE }),
 };
 
+const dayFormatter = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', timeZone: TIME_ZONE });
+const shortMonthFormatter = new Intl.DateTimeFormat('pt-BR', {
+  month: 'short',
+  timeZone: TIME_ZONE,
+});
+
 const dateInputFormatter = new Intl.DateTimeFormat('en-CA', {
   year: 'numeric',
   month: '2-digit',
@@ -131,6 +137,27 @@ export function formatDate(
   style: keyof typeof dateFormatters = 'short',
 ): string {
   return dateFormatters[style].format(new Date(value));
+}
+
+export function formatDateParts(value: string | Date): { day: string; month: string } {
+  const date = new Date(value);
+
+  return {
+    day: dayFormatter.format(date),
+    month: shortMonthFormatter.format(date).replace('.', ''),
+  };
+}
+
+const calendarDateFormatters = {
+  short: new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeZone: 'UTC' }),
+  long: new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: 'UTC' }),
+};
+
+export function formatCalendarDate(
+  value: string | Date,
+  style: keyof typeof calendarDateFormatters = 'short',
+): string {
+  return calendarDateFormatters[style].format(new Date(value));
 }
 
 export function toDayBoundary(date: string, boundary: 'start' | 'end'): string {

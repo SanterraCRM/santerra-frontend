@@ -5,6 +5,11 @@ export type CommercialActionRelation = {
   name: string;
 };
 
+export type CommercialActionReseller = {
+  id: number;
+  name: string;
+};
+
 export type CommercialAction = {
   id: string;
   description: string | null;
@@ -16,14 +21,14 @@ export type CommercialAction = {
   walletId: string;
   responsibleId: string;
   producerGuestIds: string[];
-  resellerGuestIds: string[];
+  resellerGuestIds: number[];
   participantIds: string[];
   fileIds: string[];
   event: CommercialActionRelation;
   responsible: CommercialActionRelation;
   wallet: CommercialActionRelation;
   producerGuests: CommercialActionRelation[];
-  resellerGuests: CommercialActionRelation[];
+  resellerGuests: CommercialActionReseller[];
   participants: CommercialActionRelation[];
   files: StoredFile[] | null;
   createdAt: string;
@@ -43,6 +48,6 @@ export type CommercialActionInput = Pick<
   | 'participantIds'
 > & {
   producerGuestIds?: string[];
-  resellerGuestIds?: string[];
+  resellerGuestIds?: number[];
   fileIds?: string[];
 };

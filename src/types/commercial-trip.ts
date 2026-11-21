@@ -7,6 +7,12 @@ export type CommercialTripRelation = {
   name: string;
 };
 
+// Produto da view do ERP: o código é numérico (cd_prod).
+export type CommercialTripProduct = {
+  id: number;
+  name: string;
+};
+
 export type CommercialTrip = {
   id: string;
   status: CommercialTripStatus;
@@ -19,13 +25,13 @@ export type CommercialTrip = {
   responsibleId: string;
   participantIds: string[];
   harvestIds: string[];
-  recommendedProductIds: string[];
+  recommendedProductIds: number[];
   fileIds: string[];
   producer: CommercialTripRelation;
   responsible: CommercialTripRelation;
   participants: CommercialTripRelation[];
   harvests: CommercialTripRelation[];
-  recommendedProducts: CommercialTripRelation[] | null;
+  recommendedProducts: CommercialTripProduct[] | null;
   files: StoredFile[] | null;
   createdAt: string;
   updatedAt: string;
@@ -44,6 +50,6 @@ export type CommercialTripInput = Pick<
   | 'participantIds'
   | 'harvestIds'
 > & {
-  recommendedProductIds?: string[];
+  recommendedProductIds?: number[];
   fileIds?: string[];
 };

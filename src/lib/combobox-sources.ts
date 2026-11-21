@@ -1,12 +1,18 @@
+import type { ReactNode } from 'react';
+
 import { apiRequest } from './api';
-import { formatNationalId, normalizeDocumentSearch } from './format';
+import { formatCurrency, formatNationalId, normalizeDocumentSearch } from './format';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const NAME_ORDER = { sort: 'name' };
 
 export type ComboboxOption = {
   value: string;
   label: string;
   description?: string;
+  icon?: ReactNode;
+  disabled?: boolean;
+  data?: Record<string, unknown>;
 };
 
 type ComboboxSource<T> = {
@@ -22,15 +28,39 @@ type PersonRecord = {
 };
 
 type ProductRecord = {
-  id: string;
-  name: string;
-  manufacturer: { name: string };
+  id: number | null;
+  product: string | null;
+  manufacturer: string | null;
 };
 
 type ResellerRecord = {
+  id: number | null;
+  name: string | null;
+  fantasyName: string | null;
+  document: string | null;
+};
+
+type BusinessRecord = {
   id: string;
   name: string;
   registrationNumber: string | null;
+};
+
+type NamedRecord = {
+  id: string;
+  name: string;
+};
+
+type MemberRecord = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+type WalletRecord = {
+  id: string;
+  value: number;
+  member: { name: string };
 };
 
 function personToOption({ id, person }: PersonRecord): ComboboxOption {
@@ -39,6 +69,24 @@ function personToOption({ id, person }: PersonRecord): ComboboxOption {
     label: person.name,
     description: person.nationalId ? formatNationalId(person.nationalId) : undefined,
   };
+}
+
+function businessToOption({ id, name, registrationNumber }: BusinessRecord): ComboboxOption {
+  return {
+    value: id,
+    label: name,
+    description: registrationNumber ? formatNationalId(registrationNumber) : undefined,
+  };
+}
+
+function memberToOption({ id, name, email }: MemberRecord): ComboboxOption {
+  return { value: id, label: name, description: email };
+}
+
+export function getWalletBalance(option: ComboboxOption | null): number | null {
+  const balance = option?.data?.balance;
+
+  return typeof balance === 'number' ? balance : null;
 }
 
 export const COMBOBOX_SOURCES = {
@@ -60,21 +108,56 @@ export const COMBOBOX_SOURCES = {
   } satisfies ComboboxSource<PersonRecord>,
   products: {
     path: '/products',
-    toOption: ({ id, name, manufacturer }: ProductRecord) => ({
-      value: id,
-      label: name,
-      description: manufacturer.name,
+    toOption: ({ id, product, manufacturer }: ProductRecord) => ({
+      value: String(id),
+      label: product?.trim() || `Produto ${id}`,
+      description: manufacturer ?? undefined,
+      disabled: id === null,
     }),
   } satisfies ComboboxSource<ProductRecord>,
   resellers: {
     path: '/resellers',
     normalizeSearch: normalizeDocumentSearch,
-    toOption: ({ id, name, registrationNumber }: ResellerRecord) => ({
-      value: id,
-      label: name,
-      description: registrationNumber ? formatNationalId(registrationNumber) : undefined,
+    toOption: ({ id, name, fantasyName, document }: ResellerRecord) => ({
+      value: String(id),
+      label: name || fantasyName || `Revenda ${id}`,
+      description:
+        [fantasyName, document && formatNationalId(document)].filter(Boolean).join(' · ') ||
+        undefined,
+      disabled: id === null,
     }),
   } satisfies ComboboxSource<ResellerRecord>,
+  manufacturers: {
+    path: '/manufacturers',
+    params: NAME_ORDER,
+    normalizeSearch: normalizeDocumentSearch,
+    toOption: businessToOption,
+  } satisfies ComboboxSource<BusinessRecord>,
+  events: {
+    path: '/events',
+    params: NAME_ORDER,
+    toOption: ({ id, name }: NamedRecord) => ({ value: id, label: name }),
+  } satisfies ComboboxSource<NamedRecord>,
+  wallets: {
+    path: '/wallets',
+    params: NAME_ORDER,
+    toOption: ({ id, value, member }: WalletRecord) => ({
+      value: id,
+      label: member.name,
+      description: `Saldo de ${formatCurrency(value)}`,
+      data: { balance: value },
+    }),
+  } satisfies ComboboxSource<WalletRecord>,
+  members: {
+    path: '/members',
+    params: NAME_ORDER,
+    toOption: memberToOption,
+  } satisfies ComboboxSource<MemberRecord>,
+  membersWithoutWallet: {
+    path: '/members',
+    params: { ...NAME_ORDER, active: 'true', hasWallet: 'false' },
+    toOption: memberToOption,
+  } satisfies ComboboxSource<MemberRecord>,
 };
 
 export type ComboboxSourceKey = keyof typeof COMBOBOX_SOURCES;

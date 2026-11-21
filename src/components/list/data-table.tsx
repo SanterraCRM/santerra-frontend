@@ -33,7 +33,7 @@ export type DataTableColumn<T> = {
 
 type DataTableProps<T extends { id: string }> = {
   rows: T[];
-  rowHref?: (row: T) => string;
+  rowHref?: (row: T) => string | undefined;
   primary: {
     header: string;
     title: (row: T) => string;
@@ -41,7 +41,7 @@ type DataTableProps<T extends { id: string }> = {
     avatar?: boolean | ((row: T) => ReactNode);
   };
   columns: DataTableColumn<T>[];
-  actions: {
+  actions?: {
     canUpdate: boolean | ((row: T) => boolean);
     deleteDialog?: (row: T) => DeleteDialogOptions | undefined;
   };
@@ -80,7 +80,9 @@ export function DataTable<T extends { id: string }>({
                 {column.header}
               </TableHead>
             ))}
-            <TableHead className='w-20 px-4 text-center text-muted-foreground'>Ações</TableHead>
+            {actions && (
+              <TableHead className='w-20 px-4 text-center text-muted-foreground'>Ações</TableHead>
+            )}
           </TableRow>
         </TableHeader>
 
@@ -132,18 +134,20 @@ export function DataTable<T extends { id: string }>({
                     {column.cell(row)}
                   </TableCell>
                 ))}
-                <TableCell className='px-4 py-2 text-center'>
-                  <RowActions
-                    label={title}
-                    href={href}
-                    canUpdate={
-                      typeof actions.canUpdate === 'function'
-                        ? actions.canUpdate(row)
-                        : actions.canUpdate
-                    }
-                    deleteDialog={actions.deleteDialog?.(row)}
-                  />
-                </TableCell>
+                {actions && (
+                  <TableCell className='px-4 py-2 text-center'>
+                    <RowActions
+                      label={title}
+                      href={href}
+                      canUpdate={
+                        typeof actions.canUpdate === 'function'
+                          ? actions.canUpdate(row)
+                          : actions.canUpdate
+                      }
+                      deleteDialog={actions.deleteDialog?.(row)}
+                    />
+                  </TableCell>
+                )}
               </>
             );
 

@@ -63,7 +63,8 @@ export default function CompanyLogoCard({ company }: CompanyLogoCardProps) {
       <CardHeader>
         <CardTitle>Logo</CardTitle>
         <CardDescription>
-          Aparece na escolha de empresa, no menu da conta e no Início. {COMPANY_LOGO_HINT}
+          Aparece no topo do menu, na escolha de empresa, no menu da conta e no Início.{' '}
+          {COMPANY_LOGO_HINT}
         </CardDescription>
       </CardHeader>
 

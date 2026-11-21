@@ -2,11 +2,8 @@ import { useSession } from 'next-auth/react';
 
 import { useMutation } from '@/hooks/use-mutation';
 import { apiRequest } from '@/lib/api';
-
-type CreateCompanyInput = {
-  name: string;
-  description: string | null;
-};
+import { withCompanyLogo } from '@/lib/company-logo';
+import type { NewCompanyInput } from '@/types/company';
 
 type CreatedCompany = {
   id: string;
@@ -16,10 +13,10 @@ type CreatedCompany = {
 export function useCreateCompany() {
   const { data: session } = useSession();
 
-  return useMutation((input: CreateCompanyInput) =>
+  return useMutation(({ name, description, logo }: NewCompanyInput) =>
     apiRequest<CreatedCompany>('/auth/companies', {
       method: 'POST',
-      body: input,
+      body: withCompanyLogo({ name, description }, logo),
       token: session?.accessToken,
     }),
   );

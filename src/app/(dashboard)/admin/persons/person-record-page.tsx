@@ -13,12 +13,12 @@ import { formatDate, formatDecimal, formatNationalId, formatPhone } from '@/lib/
 import { hasPermission, requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
 import type { CommercialTrip } from '@/types/commercial-trip';
-import type { Member } from '@/types/member';
 import type { Person } from '@/types/person';
 import type { Potential } from '@/types/potential';
 
 import { COMMERCIAL_TRIPS_HREF, toTripRecords } from '../commercial-trips/commercial-trips-config';
 
+import { getEmployeeAccessOptions } from './employee-access-options';
 import EmployeeForm from './employee-form';
 import PersonForm from './person-form';
 import { canDeletePerson } from './person-types';
@@ -81,12 +81,9 @@ export async function PersonRecordPage({ section, params }: PersonRecordPageProp
     (producer ? can('producers.update') : !isProducer && can('producers.create'));
 
   const canReadTrips = can('commercial-trips.read');
-  const [potentials, members, producerTrips, employeeTrips] = await Promise.all([
+  const [potentials, producerTrips, employeeTrips, employeeAccess] = await Promise.all([
     canEditProducer
       ? apiRequest<Paginated<Potential>>('/potentials?limit=100', { token: session.accessToken })
-      : null,
-    canEditEmployee && can('members.read')
-      ? apiRequest<Paginated<Member>>('/members?limit=100', { token: session.accessToken })
       : null,
     canReadTrips && producer
       ? apiRequest<Paginated<CommercialTrip>>(
@@ -100,9 +97,10 @@ export async function PersonRecordPage({ section, params }: PersonRecordPageProp
           { token: session.accessToken },
         )
       : null,
+    canEditEmployee ? getEmployeeAccessOptions(session) : null,
   ]);
   const potentialOptions = potentials?.data.map(({ id: value, name }) => ({ id: value, name })) ?? [];
-  const memberOptions = members?.data.map(({ id: value, name, email }) => ({ id: value, name, email }));
+  const canSearchMembers = can('members.read');
 
   const typeLabel = formatPersonTypes(person.types);
   const createdAt = `Cadastro criado em ${formatDate(person.createdAt, 'long')}`;
@@ -112,7 +110,13 @@ export async function PersonRecordPage({ section, params }: PersonRecordPageProp
       return (
         !isEmployee &&
         canEditEmployee && (
-          <EmployeeForm personId={person.id} members={memberOptions} listHref={listHref} />
+          <EmployeeForm
+            personId={person.id}
+            personEmail={person.email}
+            canSearchMembers={canSearchMembers}
+            access={employeeAccess}
+            listHref={listHref}
+          />
         )
       );
     }
@@ -132,8 +136,10 @@ export async function PersonRecordPage({ section, params }: PersonRecordPageProp
       return (
         <EmployeeForm
           personId={person.id}
+          personEmail={person.email}
           employee={employee}
-          members={memberOptions}
+          canSearchMembers={canSearchMembers}
+          access={employeeAccess}
           listHref={listHref}
           action={unlinkAction}
         />

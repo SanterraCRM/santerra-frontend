@@ -88,6 +88,17 @@ export async function apiRequest<T>(
   return data as T;
 }
 
+export async function hasRecords(
+  path: string,
+  token: string,
+  filters: Record<string, string> = {},
+): Promise<boolean> {
+  const query = new URLSearchParams({ ...filters, limit: '1' });
+  const { meta } = await apiRequest<{ meta: { total: number } }>(`${path}?${query}`, { token });
+
+  return meta.total > 0;
+}
+
 export function getRecordOrNotFound<T>(path: string, token: string): Promise<T> {
   return apiRequest<T>(path, { token }).catch((error: unknown) => {
     if (isApiErrorWithStatus(error, 404) || isApiErrorWithStatus(error, 400)) {

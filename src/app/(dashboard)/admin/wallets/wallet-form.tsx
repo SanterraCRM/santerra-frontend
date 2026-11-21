@@ -5,29 +5,30 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { FormAsyncCombobox } from '@/components/form/form-async-combobox';
 import { FormCard } from '@/components/form/form-card';
 import { FormMoneyInput } from '@/components/form/form-money-input';
-import { FormSelect } from '@/components/form/form-select';
 import { useCreateWallet } from '@/hooks/wallets/use-create-wallet';
 import { useReturnToList } from '@/hooks/use-return-to-list';
 import { getApiErrorMessage, isApiErrorWithCode } from '@/lib/api';
-import { optionalMoneySchema } from '@/lib/schemas';
+import type { ComboboxOption } from '@/lib/combobox-sources';
+import { optionalMoneySchema, requiredOptionSchema } from '@/lib/schemas';
 
 import { WALLETS_HREF } from './wallets-config';
 
 const walletFormSchema = z.object({
-  userCompanyId: z.string().min(1, 'Selecione o membro'),
+  userCompanyId: requiredOptionSchema('Selecione o membro'),
   value: optionalMoneySchema,
 });
 
 type WalletFormOutput = z.output<typeof walletFormSchema>;
 
 type WalletFormProps = {
-  memberOptions: { value: string; label: string }[];
-  defaultMemberId: string;
+  hasAvailableMembers: boolean;
+  defaultMember: ComboboxOption | null;
 };
 
-export default function WalletForm({ memberOptions, defaultMemberId }: WalletFormProps) {
+export default function WalletForm({ hasAvailableMembers, defaultMember }: WalletFormProps) {
   const returnToList = useReturnToList(WALLETS_HREF);
   const { mutate: createWallet } = useCreateWallet();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -39,7 +40,7 @@ export default function WalletForm({ memberOptions, defaultMemberId }: WalletFor
     formState: { isDirty, isSubmitting },
   } = useForm({
     resolver: zodResolver(walletFormSchema),
-    defaultValues: { userCompanyId: defaultMemberId, value: '' },
+    defaultValues: { userCompanyId: defaultMember, value: '' },
   });
 
   async function handleSave({ userCompanyId, value }: WalletFormOutput) {
@@ -74,18 +75,19 @@ export default function WalletForm({ memberOptions, defaultMemberId }: WalletFor
       createLabel='Criar carteira'
     >
       <div className='grid gap-5 sm:grid-cols-2'>
-        <FormSelect
+        <FormAsyncCombobox
           control={control}
           name='userCompanyId'
           label='Membro'
           required
-          options={memberOptions}
+          source='membersWithoutWallet'
           placeholder='Selecione o membro'
-          disabled={memberOptions.length === 0}
+          searchPlaceholder='Buscar pelo nome ou e-mail'
+          disabled={!hasAvailableMembers}
           description={
-            memberOptions.length === 0
-              ? 'Todos os membros ativos já têm carteira.'
-              : 'Só aparecem membros ativos que ainda não têm carteira.'
+            hasAvailableMembers
+              ? 'Só aparecem membros ativos que ainda não têm carteira.'
+              : 'Todos os membros ativos já têm carteira.'
           }
         />
         <FormMoneyInput

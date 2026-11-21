@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { apiRequest, getRecordOrNotFound } from '@/lib/api';
 import { authOptions } from '@/lib/auth';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { getRoleOptions } from '@/lib/permissions';
 import { hasPermission, requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
 import type { MemberDetails } from '@/types/member';
@@ -18,12 +19,7 @@ import type { Role } from '@/types/role';
 import type { WalletListItem } from '@/types/wallet';
 
 import MemberForm from '../member-form';
-import {
-  getMemberReadOnlyReason,
-  getMemberRemoveTexts,
-  getRoleNames,
-  getRoleOptions,
-} from '../members-config';
+import { getMemberReadOnlyReason, getMemberRemoveTexts, getRoleNames } from '../members-config';
 
 type MemberPageProps = {
   params: Promise<{ id: string }>;

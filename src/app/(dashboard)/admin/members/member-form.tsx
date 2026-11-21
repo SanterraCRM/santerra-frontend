@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { FormCard } from '@/components/form/form-card';
-import { type FormCheckboxOption, FormCheckboxGroup } from '@/components/form/form-checkbox-group';
+import { type FormMultiSelectOption, FormMultiSelect } from '@/components/form/form-multi-select';
 import { FormSwitch } from '@/components/form/form-switch';
 import { useUpdateMember } from '@/hooks/members/use-update-member';
 import { useReturnToList } from '@/hooks/use-return-to-list';
@@ -22,7 +22,7 @@ type MemberFormValues = z.infer<typeof memberFormSchema>;
 
 type MemberFormProps = {
   member: MemberDetails;
-  roleOptions: FormCheckboxOption[] | null;
+  roleOptions: FormMultiSelectOption[] | null;
 };
 
 export default function MemberForm({ member, roleOptions }: MemberFormProps) {
@@ -73,13 +73,15 @@ export default function MemberForm({ member, roleOptions }: MemberFormProps) {
           description='Desativado, o membro perde o acesso na hora e volta a entrar só quando for reativado.'
         />
         {roleOptions && (
-          <FormCheckboxGroup
+          <FormMultiSelect
             control={control}
             name='roleIds'
             label='Cargos'
-            description='As permissões do membro são a soma das permissões dos cargos marcados.'
             options={roleOptions}
+            placeholder='Selecione os cargos'
+            searchPlaceholder='Buscar cargo…'
             emptyMessage='Nenhum cargo cadastrado. Crie cargos em Configurações › Cargos.'
+            description='As permissões do membro são a soma das permissões dos cargos escolhidos.'
           />
         )}
       </div>

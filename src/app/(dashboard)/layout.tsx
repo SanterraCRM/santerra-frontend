@@ -19,7 +19,8 @@ export default async function DashboardLayout({
     <SidebarProvider defaultOpen={cookieStore.get(SIDEBAR_COOKIE_NAME)?.value !== 'false'}>
       <SessionWatcher />
       <AppSidebar
-        companyName={companyName}
+        company={session.company}
+        companies={session.companies}
         permissions={session.permissions}
         isPlatformAdmin={session.isPlatformAdmin}
       />

@@ -90,7 +90,7 @@ export const TRIP_DELETE_TEXTS: DeleteDialogTexts = {
   errorMessage: 'Não foi possível excluir a visita. Tente novamente.',
 };
 
-export function formatNames(relations: CommercialTripRelation[]): string {
+export function formatNames(relations: Pick<CommercialTripRelation, 'name'>[]): string {
   return relations.map((relation) => relation.name).join(', ');
 }
 

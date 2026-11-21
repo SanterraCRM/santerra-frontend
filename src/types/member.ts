@@ -23,3 +23,15 @@ export type MemberInput = {
   active?: boolean;
   roleIds?: string[];
 };
+
+export type NewMemberInput = {
+  email: string;
+  name?: string;
+  password?: string;
+  roleIds: string[];
+};
+
+export type CreateMemberResult = {
+  member: MemberDetails;
+  accountCreated: boolean;
+};

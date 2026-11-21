@@ -1,46 +1,83 @@
 import type { DeleteDialogTexts } from '@/components/crud/confirm-delete-dialog';
 import type { ListEmptyStateTexts } from '@/components/list/list-empty-state';
-import { formatCurrency, formatPercent } from '@/lib/format';
+import { formatCurrency, formatDecimal, formatPercent } from '@/lib/format';
 import type { FilterDefinition, FilterOption } from '@/lib/list-filters';
-import type { ProductRelation } from '@/types/product';
+import type { ProductView, ProductViewFilterOptions } from '@/types/product';
 
 export const PRODUCTS_HREF = '/admin/products';
 
-function toFilterOptions(relations: ProductRelation[]): FilterOption[] {
-  return relations.map(({ id, name }) => ({ value: id, label: name }));
+const ACTIVE_FLAG = 1;
+
+const STATUS_OPTIONS: FilterOption[] = [
+  { value: 'true', label: 'Ativos' },
+  { value: 'false', label: 'Inativos' },
+];
+
+function toFilterOptions(values: string[]): FilterOption[] {
+  return values.map((value) => ({ value, label: value }));
 }
 
-export function getProductFilters(
-  manufacturers: ProductRelation[],
-  groups: ProductRelation[] | null,
-): FilterDefinition[] {
-  const filters: FilterDefinition[] = [];
-
-  if (manufacturers.length > 0) {
-    filters.push({
-      type: 'select',
+export function getProductFilters(options: ProductViewFilterOptions): FilterDefinition[] {
+  const selects: { key: string; label: string; options: FilterOption[] }[] = [
+    {
       key: 'manufacturerId',
       label: 'Fabricante',
-      options: toFilterOptions(manufacturers),
-    });
-  }
+      options: options.manufacturers.map(({ id, name }) => ({ value: id, label: name })),
+    },
+    { key: 'crop', label: 'Cultura', options: toFilterOptions(options.crops) },
+    { key: 'department', label: 'Departamento', options: toFilterOptions(options.departments) },
+    { key: 'section', label: 'Seção', options: toFilterOptions(options.sections) },
+    { key: 'category', label: 'Categoria', options: toFilterOptions(options.categories) },
+    { key: 'line', label: 'Linha', options: toFilterOptions(options.lines) },
+  ];
 
-  if (groups && groups.length > 0) {
-    filters.push({ type: 'select', key: 'groupId', label: 'Grupo', options: toFilterOptions(groups) });
-  }
+  return [
+    { type: 'select', key: 'isActive', label: 'Situação', options: STATUS_OPTIONS },
+    ...selects
+      .filter((filter) => filter.options.length > 0)
+      .map((filter) => ({ type: 'select' as const, ...filter })),
+  ];
+}
 
-  filters.push(
-    { type: 'moneyRange', label: 'Preço de venda', fromKey: 'priceMin', toKey: 'priceMax' },
-    { type: 'dateRange', label: 'Data de cadastro', fromKey: 'createdFrom', toKey: 'createdTo' },
+// A view usa código numérico e pode trazer linhas sem código; as listas trabalham com id string.
+export type ProductViewRow = Omit<ProductView, 'id'> & { id: string };
+
+export function toProductViewRows(products: ProductView[]): ProductViewRow[] {
+  return products.flatMap(({ id, ...product }) =>
+    id === null ? [] : [{ ...product, id: String(id) }],
+  );
+}
+
+export function isProductActive(product: Pick<ProductView, 'isActive'>): boolean {
+  return product.isActive === ACTIVE_FLAG;
+}
+
+export function getProductName(product: Pick<ProductView, 'product'>): string {
+  return product.product?.trim() || 'Produto sem nome';
+}
+
+export function formatProductClassification(
+  product: Pick<ProductView, 'department' | 'section' | 'category' | 'line'>,
+): string | null {
+  const parts = [product.department, product.section, product.category, product.line].filter(
+    (part): part is string => Boolean(part?.trim()),
   );
 
-  return filters;
+  return parts.length > 0 ? parts.join(' › ') : null;
+}
+
+export function formatMeasure(value: number | null, unit?: string): string | null {
+  if (value === null) {
+    return null;
+  }
+
+  return unit ? `${formatDecimal(value)} ${unit}` : formatDecimal(value);
 }
 
 export const PRODUCT_EMPTY_TEXTS: ListEmptyStateTexts = {
   notFoundTitle: 'Nenhum produto encontrado',
   filtersDescription: 'Nenhum produto corresponde aos filtros aplicados.',
-  searchHint: 'Confira a grafia ou busque por um trecho da descrição.',
+  searchHint: 'Confira a grafia ou busque por um trecho do nome.',
   emptyTitle: 'Nenhum produto cadastrado',
   emptyDescription: 'Cadastre o primeiro produto do catálogo da empresa.',
   emptyReadOnlyDescription: 'Quando houver produtos cadastrados, eles aparecerão aqui.',
