@@ -8,4 +8,11 @@ export type Employee = {
   updatedAt: string;
 };
 
-export type EmployeeInput = Pick<Employee, 'userCompanyId' | 'hiredAt' | 'terminatedAt'>;
+export type EmployeeAccessInput = {
+  password: string;
+  roleIds: string[];
+};
+
+export type EmployeeInput = Pick<Employee, 'userCompanyId' | 'hiredAt' | 'terminatedAt'> & {
+  access?: EmployeeAccessInput;
+};

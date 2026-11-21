@@ -1,4 +1,15 @@
 import type { Permission } from '@/types/permission';
+import type { Role } from '@/types/role';
+
+const ROLE_OUT_OF_SCOPE_DESCRIPTION =
+  'Tem permissões que você não tem, então você não pode atribuí-lo.';
+
+export type RoleOption = {
+  value: string;
+  label: string;
+  description?: string;
+  disabled?: boolean;
+};
 
 export const PERMISSION_ACTIONS = ['read', 'create', 'update', 'delete'] as const;
 
@@ -93,6 +104,27 @@ export function hasAllPermissions(
   return getPermissionNames(permissionIds, permissions).every((name) =>
     grantedPermissions.includes(name),
   );
+}
+
+export function getRoleOptions(
+  roles: Role[] | null,
+  permissions: Permission[],
+  grantedPermissions: string[],
+): RoleOption[] | null {
+  if (!roles) {
+    return null;
+  }
+
+  return roles.map((role) => {
+    const isGrantable = hasAllPermissions(role.permissionIds, permissions, grantedPermissions);
+
+    return {
+      value: role.id,
+      label: role.name,
+      description: isGrantable ? (role.description ?? undefined) : ROLE_OUT_OF_SCOPE_DESCRIPTION,
+      disabled: !isGrantable,
+    };
+  });
 }
 
 export type AttachmentPermissions = {
