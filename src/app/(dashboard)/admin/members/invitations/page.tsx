@@ -14,6 +14,7 @@ import { apiRequest } from '@/lib/api';
 import { formatDate } from '@/lib/format';
 import { parseFilters, toApiFilters } from '@/lib/list-filters';
 import { buildApiListQuery, buildListHref, parseListParams } from '@/lib/list-params';
+import { getRoleOptions } from '@/lib/permissions';
 import { hasPermission, requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
 import type { Invitation } from '@/types/invitation';
@@ -21,7 +22,7 @@ import type { Permission } from '@/types/permission';
 import type { Role } from '@/types/role';
 
 import { InviteMemberDialog } from '../invite-member-dialog';
-import { getRoleNames, getRoleOptions, getTeamTabs } from '../members-config';
+import { getRoleNames, getTeamTabs } from '../members-config';
 import {
   getInvitationDeleteTexts,
   getInvitationStatus,

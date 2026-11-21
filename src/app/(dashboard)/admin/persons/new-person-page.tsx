@@ -6,6 +6,7 @@ import { hasPermission, requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
 import type { Potential } from '@/types/potential';
 
+import { getEmployeeAccessOptions } from './employee-access-options';
 import PersonForm from './person-form';
 import { getCreatablePersonTypes } from './person-types';
 import type { PersonSection } from './persons-config';
@@ -24,9 +25,12 @@ export async function NewPersonPage({ section }: NewPersonPageProps) {
     notFound();
   }
 
-  const potentials = personTypes.includes('producer')
-    ? await apiRequest<Paginated<Potential>>('/potentials?limit=100', { token: session.accessToken })
-    : null;
+  const [potentials, employeeAccess] = await Promise.all([
+    personTypes.includes('producer')
+      ? apiRequest<Paginated<Potential>>('/potentials?limit=100', { token: session.accessToken })
+      : null,
+    personTypes.includes('employee') ? getEmployeeAccessOptions(session) : null,
+  ]);
 
   return (
     <RecordPageLayout
@@ -45,6 +49,7 @@ export async function NewPersonPage({ section }: NewPersonPageProps) {
           personTypes.includes('employee') && hasPermission(session, 'members.read')
         }
         canCreatePotential={hasPermission(session, 'potentials.create')}
+        employeeAccess={employeeAccess}
       />
     </RecordPageLayout>
   );

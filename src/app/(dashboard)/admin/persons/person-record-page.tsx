@@ -18,6 +18,7 @@ import type { Potential } from '@/types/potential';
 
 import { COMMERCIAL_TRIPS_HREF, toTripRecords } from '../commercial-trips/commercial-trips-config';
 
+import { getEmployeeAccessOptions } from './employee-access-options';
 import EmployeeForm from './employee-form';
 import PersonForm from './person-form';
 import { canDeletePerson } from './person-types';
@@ -80,7 +81,7 @@ export async function PersonRecordPage({ section, params }: PersonRecordPageProp
     (producer ? can('producers.update') : !isProducer && can('producers.create'));
 
   const canReadTrips = can('commercial-trips.read');
-  const [potentials, producerTrips, employeeTrips] = await Promise.all([
+  const [potentials, producerTrips, employeeTrips, employeeAccess] = await Promise.all([
     canEditProducer
       ? apiRequest<Paginated<Potential>>('/potentials?limit=100', { token: session.accessToken })
       : null,
@@ -96,6 +97,7 @@ export async function PersonRecordPage({ section, params }: PersonRecordPageProp
           { token: session.accessToken },
         )
       : null,
+    canEditEmployee ? getEmployeeAccessOptions(session) : null,
   ]);
   const potentialOptions = potentials?.data.map(({ id: value, name }) => ({ id: value, name })) ?? [];
   const canSearchMembers = can('members.read');
@@ -110,7 +112,9 @@ export async function PersonRecordPage({ section, params }: PersonRecordPageProp
         canEditEmployee && (
           <EmployeeForm
             personId={person.id}
+            personEmail={person.email}
             canSearchMembers={canSearchMembers}
+            access={employeeAccess}
             listHref={listHref}
           />
         )
@@ -132,8 +136,10 @@ export async function PersonRecordPage({ section, params }: PersonRecordPageProp
       return (
         <EmployeeForm
           personId={person.id}
+          personEmail={person.email}
           employee={employee}
           canSearchMembers={canSearchMembers}
+          access={employeeAccess}
           listHref={listHref}
           action={unlinkAction}
         />

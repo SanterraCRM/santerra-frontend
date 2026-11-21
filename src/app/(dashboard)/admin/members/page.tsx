@@ -14,19 +14,20 @@ import { apiRequest } from '@/lib/api';
 import { formatDate } from '@/lib/format';
 import { parseFilters, toApiFilters } from '@/lib/list-filters';
 import { buildApiListQuery, buildListHref, parseListParams } from '@/lib/list-params';
+import { getRoleOptions } from '@/lib/permissions';
 import { hasPermission, requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
 import type { MemberDetails } from '@/types/member';
 import type { Permission } from '@/types/permission';
 import type { Role } from '@/types/role';
 
+import { AddMemberDialog } from './add-member-dialog';
 import { InviteMemberDialog } from './invite-member-dialog';
 import {
   getMemberFilters,
   getMemberReadOnlyReason,
   getMemberRemoveTexts,
   getRoleNames,
-  getRoleOptions,
   getTeamTabs,
   MEMBER_EMPTY_TEXTS,
 } from './members-config';
@@ -71,10 +72,14 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
   const isReadOnly = (member: MemberDetails) =>
     getMemberReadOnlyReason(member, session, roles?.data ?? null, permissions.data) !== null;
   const tabs = getTeamTabs(session);
-  const inviteAction = hasPermission(session, 'invitations.create') && (
-    <InviteMemberDialog
-      roleOptions={getRoleOptions(roles?.data ?? null, permissions.data, session.permissions)}
-    />
+  const roleOptions = getRoleOptions(roles?.data ?? null, permissions.data, session.permissions);
+  const canAddMember = hasPermission(session, 'members.create');
+  const canInvite = hasPermission(session, 'invitations.create');
+  const teamActions = (canAddMember || canInvite) && (
+    <>
+      {canAddMember && <AddMemberDialog roleOptions={roleOptions} />}
+      {canInvite && <InviteMemberDialog roleOptions={roleOptions} />}
+    </>
   );
 
   return (
@@ -83,7 +88,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
         icon={UsersRound}
         title='Equipe'
         description='Veja quem faz parte da empresa, ative ou desative o acesso e escolha os cargos.'
-        actions={inviteAction}
+        actions={teamActions}
         searchPlaceholder='Buscar por nome ou e-mail'
         filters={<ListFilters filters={filterDefinitions} values={filters} />}
       />
@@ -150,7 +155,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
             pathname='/admin/members'
             searchTerm={searchTerm}
             hasFilters={Object.values(filters).some(Boolean)}
-            createAction={inviteAction}
+            createAction={teamActions}
             texts={MEMBER_EMPTY_TEXTS}
           />
         }
