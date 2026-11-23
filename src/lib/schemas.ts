@@ -44,12 +44,17 @@ export const optionalTextSchema = z
 
 export const optionalDecimalSchema = z.string().transform(parseDecimal);
 
+export const optionalFileSchema = z.custom<File | null>(
+  (value) => value === null || value instanceof File,
+);
+
 export const optionalMoneySchema = z.string().transform(parseMoney);
 
 export const comboboxOptionSchema = z.object({
   value: z.string(),
   label: z.string(),
   description: z.string().optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
 });
 
 export function requiredOptionSchema(message: string) {
@@ -58,6 +63,10 @@ export function requiredOptionSchema(message: string) {
     .refine((option) => option !== null, message)
     .transform((option) => option?.value ?? '');
 }
+
+export const optionalOptionSchema = comboboxOptionSchema
+  .nullable()
+  .transform((option) => option?.value ?? null);
 
 export const optionIdsSchema = z
   .array(comboboxOptionSchema)
@@ -75,6 +84,13 @@ export const storedFilesSchema = z.array(
 export const optionalDateSchema = z
   .string()
   .transform((value) => (value ? toDayBoundary(value, 'start') : null));
+
+export function requiredDateSchema(message: string) {
+  return z
+    .string()
+    .min(1, message)
+    .transform((value) => toDayBoundary(value, 'start'));
+}
 
 export function createPasswordConfirmationSchema(confirmationMessage: string) {
   return z

@@ -16,7 +16,7 @@ import { optionalTextSchema } from '@/lib/schemas';
 import type { Event } from '@/types/event';
 
 const eventFormSchema = z.object({
-  name: z.string().trim().min(1, 'Informe o nome do evento'),
+  name: z.string().trim().min(1, 'Informe o nome do tipo de evento'),
   description: optionalTextSchema,
 });
 
@@ -69,13 +69,13 @@ export default function EventForm({ event }: EventFormProps) {
       return;
     }
 
-    returnToList(event ? 'Alterações salvas.' : 'Evento cadastrado.');
+    returnToList(event ? 'Alterações salvas.' : 'Tipo de evento cadastrado.');
   }
 
   return (
     <FormCard
-      title='Dados do evento'
-      description='Nome e descrição do evento.'
+      title='Dados do tipo de evento'
+      description='Nome e descrição do tipo de evento.'
       onSubmit={handleSubmit(handleSave)}
       errorMessage={errorMessage}
       isEditing={Boolean(event)}
@@ -83,7 +83,7 @@ export default function EventForm({ event }: EventFormProps) {
       isSubmitting={isSubmitting}
       onDiscard={() => reset()}
       cancelHref='/admin/events'
-      createLabel='Cadastrar evento'
+      createLabel='Cadastrar tipo de evento'
     >
       <div className='grid gap-5'>
         <FormInput
@@ -92,13 +92,13 @@ export default function EventForm({ event }: EventFormProps) {
           label='Nome'
           required
           autoComplete='off'
-          placeholder='Ex.: Dia de Campo Soja 2026'
+          placeholder='Ex.: Dia de campo'
         />
         <FormTextarea
           control={control}
           name='description'
           label='Descrição'
-          placeholder='O que acontece no evento e para quem ele é'
+          placeholder='O que acontece nesse tipo de evento e para quem ele é'
         />
       </div>
     </FormCard>

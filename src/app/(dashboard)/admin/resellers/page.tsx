@@ -7,16 +7,26 @@ import { DataTable } from '@/components/list/data-table';
 import { ListEmptyState } from '@/components/list/list-empty-state';
 import { ListFilters } from '@/components/list/list-filters';
 import { ListPagination } from '@/components/list/list-pagination';
+import { StatusBadge } from '@/components/list/status-badge';
 import { Button } from '@/components/ui/button';
 import { apiRequest } from '@/lib/api';
-import { formatDate, formatNationalId, formatPhone, normalizeDocumentSearch } from '@/lib/format';
+import { formatCalendarDate, formatNationalId, normalizeDocumentSearch } from '@/lib/format';
 import { parseFilters, toApiFilters } from '@/lib/list-filters';
 import { buildApiListQuery, buildListHref, parseListParams } from '@/lib/list-params';
 import { hasPermission, requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
-import type { Reseller } from '@/types/reseller';
+import type { ResellerView } from '@/types/reseller';
 
-import { getResellerDeleteTexts, RESELLER_EMPTY_TEXTS, RESELLER_FILTERS } from './resellers-config';
+import {
+  formatDddPhone,
+  getResellerDeleteTexts,
+  getResellerName,
+  isResellerActive,
+  RESELLER_EMPTY_TEXTS,
+  RESELLER_FILTERS,
+  RESELLERS_HREF,
+  toResellerViewRows,
+} from './resellers-config';
 
 export const metadata: Metadata = {
   title: 'Revendas',
@@ -37,17 +47,17 @@ export default async function ResellersPage({ searchParams }: ResellersPageProps
     toApiFilters(filters, RESELLER_FILTERS),
   );
 
-  const resellers = await apiRequest<Paginated<Reseller>>(`/resellers?${query}`, {
+  const resellers = await apiRequest<Paginated<ResellerView>>(`/resellers?${query}`, {
     token: session.accessToken,
   });
 
   if (resellers.meta.totalPages > 0 && page > resellers.meta.totalPages) {
-    redirect(buildListHref('/admin/resellers', listQuery, resellers.meta.totalPages, pageSize));
+    redirect(buildListHref(RESELLERS_HREF, listQuery, resellers.meta.totalPages, pageSize));
   }
 
   const canDelete = hasPermission(session, 'resellers.delete');
   const createAction = hasPermission(session, 'resellers.create') && (
-    <Button href='/admin/resellers/new'>
+    <Button href={`${RESELLERS_HREF}/new`}>
       <Plus />
       Nova revenda
     </Button>
@@ -58,18 +68,18 @@ export default async function ResellersPage({ searchParams }: ResellersPageProps
       <PageHeader
         icon={Store}
         title='Revendas'
-        description='Gerencie as revendas que a sua empresa convida para as ações comerciais.'
+        description='Revendas cadastradas clientes da santerra.'
         actions={createAction}
         searchPlaceholder='Buscar por nome ou CNPJ'
         filters={<ListFilters filters={RESELLER_FILTERS} values={filters} />}
       />
 
       <DataTable
-        rows={resellers.data}
-        rowHref={(reseller) => `/admin/resellers/${reseller.id}`}
+        rows={toResellerViewRows(resellers.data)}
+        rowHref={(reseller) => `${RESELLERS_HREF}/${reseller.id}`}
         primary={{
           header: 'Revenda',
-          title: (reseller) => reseller.name,
+          title: getResellerName,
           subtitle: (reseller) => reseller.email || 'E-mail não informado',
           avatar: true,
         }}
@@ -77,26 +87,36 @@ export default async function ResellersPage({ searchParams }: ResellersPageProps
           {
             header: 'CNPJ',
             visibleFrom: 'sm',
-            cell: (reseller) =>
-              reseller.registrationNumber ? formatNationalId(reseller.registrationNumber) : '—',
+            cell: (reseller) => (reseller.document ? formatNationalId(reseller.document) : '—'),
           },
           {
             header: 'Telefone',
             visibleFrom: 'md',
-            cell: (reseller) => (reseller.phoneNumber ? formatPhone(reseller.phoneNumber) : '—'),
+            cell: (reseller) => formatDddPhone(reseller.clientPhoneDDD, reseller.clientPhone) ?? '—',
           },
           {
             header: 'Cadastro',
             visibleFrom: 'lg',
-            cell: (reseller) => formatDate(reseller.createdAt),
+            cell: (reseller) => (reseller.createdAt ? formatCalendarDate(reseller.createdAt) : '—'),
+          },
+          {
+            header: 'Situação',
+            visibleFrom: 'sm',
+            align: 'end',
+            cell: (reseller) =>
+              isResellerActive(reseller) ? (
+                <StatusBadge label='Ativo' tone='success' />
+              ) : (
+                <StatusBadge label='Inativo' tone='neutral' />
+              ),
           },
         ]}
         actions={{
           canUpdate: hasPermission(session, 'resellers.update'),
           deleteDialog: canDelete
             ? (reseller) => ({
-                ...getResellerDeleteTexts(reseller.actionsCount),
-                recordName: reseller.name,
+                ...getResellerDeleteTexts(0),
+                recordName: getResellerName(reseller),
                 deletePath: `/resellers/${reseller.id}`,
               })
             : undefined,
@@ -104,7 +124,7 @@ export default async function ResellersPage({ searchParams }: ResellersPageProps
         emptyState={
           <ListEmptyState
             icon={Store}
-            pathname='/admin/resellers'
+            pathname={RESELLERS_HREF}
             searchTerm={searchTerm}
             hasFilters={Object.values(filters).some(Boolean)}
             createAction={createAction}
@@ -112,7 +132,7 @@ export default async function ResellersPage({ searchParams }: ResellersPageProps
           />
         }
         footer={
-          <ListPagination pathname='/admin/resellers' query={listQuery} meta={resellers.meta} />
+          <ListPagination pathname={RESELLERS_HREF} query={listQuery} meta={resellers.meta} />
         }
       />
     </div>

@@ -1,25 +1,64 @@
 import type { DeleteDialogTexts } from '@/components/crud/confirm-delete-dialog';
 import type { ListEmptyStateTexts } from '@/components/list/list-empty-state';
+import { formatPhone } from '@/lib/format';
 import type { FilterDefinition } from '@/lib/list-filters';
+import type { ResellerView } from '@/types/reseller';
+
+export const RESELLERS_HREF = '/admin/resellers';
+
+const ACTIVE_FLAG = 1;
 
 export const RESELLER_FILTERS: FilterDefinition[] = [
+  {
+    type: 'select',
+    key: 'isActive',
+    label: 'Situação',
+    options: [
+      { value: 'true', label: 'Ativos' },
+      { value: 'false', label: 'Inativos' },
+    ],
+  },
   { type: 'dateRange', label: 'Data de cadastro', fromKey: 'createdFrom', toKey: 'createdTo' },
   {
     type: 'checkboxes',
     key: 'missing',
     label: 'Dados faltando',
     options: [
-      { value: 'registrationNumber', label: 'Sem CNPJ' },
-      { value: 'phoneNumber', label: 'Sem telefone' },
+      { value: 'document', label: 'Sem CNPJ' },
+      { value: 'clientPhone', label: 'Sem telefone' },
       { value: 'email', label: 'Sem e-mail' },
     ],
   },
 ];
 
+export type ResellerViewRow = Omit<ResellerView, 'id'> & { id: string };
+
+export function toResellerViewRows(resellers: ResellerView[]): ResellerViewRow[] {
+  return resellers.flatMap(({ id, ...reseller }) =>
+    id === null ? [] : [{ ...reseller, id: String(id) }],
+  );
+}
+
+export function getResellerName(reseller: Pick<ResellerView, 'name' | 'fantasyName'>): string {
+  return reseller.name || reseller.fantasyName || 'Revenda sem nome';
+}
+
+export function isResellerActive(reseller: Pick<ResellerView, 'isActive'>): boolean {
+  return reseller.isActive === ACTIVE_FLAG;
+}
+
+export function formatDddPhone(ddd: string | null, phone: string | null): string | null {
+  if (!phone) {
+    return null;
+  }
+
+  return formatPhone(`${ddd ?? ''}${phone}`);
+}
+
 export const RESELLER_EMPTY_TEXTS: ListEmptyStateTexts = {
   notFoundTitle: 'Nenhuma revenda encontrada',
   filtersDescription: 'Nenhuma revenda corresponde aos filtros aplicados.',
-  searchHint: 'Confira a grafia ou busque pelo CNPJ.',
+  searchHint: 'Confira a grafia ou busque pelo nome fantasia ou CNPJ.',
   emptyTitle: 'Nenhuma revenda cadastrada',
   emptyDescription: 'Cadastre a primeira revenda para convidá-la para as ações comerciais.',
   emptyReadOnlyDescription: 'Quando houver revendas cadastradas, elas aparecerão aqui.',

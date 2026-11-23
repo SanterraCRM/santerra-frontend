@@ -4,10 +4,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { AuthHeader } from '@/components/auth/auth-header';
+import { CompanyLogoInput } from '@/components/form/company-logo-input';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ArrowLeftIcon, BuildingIcon } from '@/components/ui/icons';
@@ -16,11 +17,12 @@ import { useCreateCompany } from '@/hooks/auth/use-create-company';
 import { useSelectCompany } from '@/hooks/auth/use-select-company';
 import { getApiErrorMessage } from '@/lib/api';
 import { DEFAULT_CALLBACK_URL, SELECT_COMPANY_PATH } from '@/lib/callback-url';
-import { optionalTextSchema } from '@/lib/schemas';
+import { optionalFileSchema, optionalTextSchema } from '@/lib/schemas';
 
 const createCompanySchema = z.object({
   name: z.string().trim().min(1, 'Informe o nome da empresa'),
   description: optionalTextSchema,
+  logo: optionalFileSchema,
 });
 
 type CreateCompanyInput = z.input<typeof createCompanySchema>;
@@ -37,12 +39,13 @@ export default function CreateCompanyForm({ hasCompany }: CreateCompanyFormProps
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<CreateCompanyInput, unknown, CreateCompanyOutput>({
     resolver: zodResolver(createCompanySchema),
-    defaultValues: { name: '', description: '' },
+    defaultValues: { name: '', description: '', logo: null },
   });
 
   async function handleCreate(values: CreateCompanyOutput) {
@@ -101,6 +104,19 @@ export default function CreateCompanyForm({ hasCompany }: CreateCompanyFormProps
           error={errors.description?.message}
           {...register('description')}
         />
+
+        <div className='flex flex-col gap-2'>
+          <label htmlFor='logo' className='text-sm font-semibold text-slate-700'>
+            Logo (opcional)
+          </label>
+          <Controller
+            control={control}
+            name='logo'
+            render={({ field }) => (
+              <CompanyLogoInput id='logo' value={field.value} onChange={field.onChange} />
+            )}
+          />
+        </div>
 
         <Button
           type='submit'

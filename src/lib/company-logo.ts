@@ -1,6 +1,7 @@
 import { API_URL } from './api';
 
 const BYTES_PER_MEGABYTE = 1024 * 1024;
+const COMPANY_LOGO_FIELD_NAME = 'file';
 const COMPANY_LOGO_MAX_SIZE_MB = 2;
 const COMPANY_LOGO_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
@@ -15,6 +16,32 @@ type CompanyWithLogo = {
 
 export function getCompanyLogoUrl({ id, logo }: CompanyWithLogo): string | null {
   return logo ? `${API_URL}/companies/${id}/logo?v=${encodeURIComponent(logo)}` : null;
+}
+
+export function toCompanyLogoFormData(file: File): FormData {
+  const body = new FormData();
+  body.append(COMPANY_LOGO_FIELD_NAME, file);
+
+  return body;
+}
+
+export function withCompanyLogo(
+  fields: Record<string, string | null>,
+  logo: File | null,
+): Record<string, string | null> | FormData {
+  if (!logo) {
+    return fields;
+  }
+
+  const body = toCompanyLogoFormData(logo);
+
+  for (const [key, value] of Object.entries(fields)) {
+    if (value !== null) {
+      body.append(key, value);
+    }
+  }
+
+  return body;
 }
 
 export function getCompanyLogoValidationError(file: File): string | null {

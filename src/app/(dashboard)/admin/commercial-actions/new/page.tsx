@@ -27,7 +27,7 @@ export default async function NewCommercialActionPage() {
       backLabel='Ações comerciais'
       icon={Megaphone}
       title='Nova ação comercial'
-      description='Preencha os dados para registrar uma ação comercial num evento.'
+      description='Preencha os dados para registrar uma ação comercial, como um dia de campo ou uma feira.'
     >
       <CommercialActionForm {...options} />
     </RecordPageLayout>

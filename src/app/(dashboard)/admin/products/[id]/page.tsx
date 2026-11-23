@@ -4,29 +4,37 @@ import { getServerSession } from 'next-auth';
 
 import { DeleteRecordButton } from '@/components/crud/delete-record-button';
 import { RecordDetails } from '@/components/crud/record-details';
-import { FileAttachments } from '@/components/files/file-attachments';
 import { RecordPageLayout } from '@/components/layout/record-page-layout';
+import { BadgeList } from '@/components/list/badge-list';
 import { getRecordOrNotFound } from '@/lib/api';
 import { authOptions } from '@/lib/auth';
-import { formatCurrency, formatDate } from '@/lib/format';
-import { getAttachmentPermissions } from '@/lib/permissions';
 import { hasPermission, requireSession } from '@/lib/session';
-import type { Product } from '@/types/product';
+import type { ProductView } from '@/types/product';
 
-import ProductForm from '../product-form';
-import { getProductOptions } from '../product-options';
-import { formatMargin, PRODUCT_DELETE_TEXTS, PRODUCTS_HREF } from '../products-config';
+import {
+  formatMeasure,
+  getProductName,
+  isProductActive,
+  PRODUCT_DELETE_TEXTS,
+  PRODUCTS_HREF,
+} from '../products-config';
 
 type ProductPageProps = {
   params: Promise<{ id: string }>;
 };
 
-function getProduct(id: string, token: string): Promise<Product> {
-  return getRecordOrNotFound<Product>(`/products/${id}`, token);
+function getProduct(id: string, token: string): Promise<ProductView> {
+  return getRecordOrNotFound<ProductView>(`/products/${id}`, token);
 }
 
-function formatPrice(value: number | null): string | null {
-  return value === null ? null : formatCurrency(value);
+function formatPurchaseUnit(product: ProductView): string | null {
+  if (!product.purchaseUnity) {
+    return null;
+  }
+
+  return product.purchaseQuantity === null
+    ? product.purchaseUnity
+    : `${product.purchaseUnity} com ${product.purchaseQuantity} ${product.stockUnity ?? 'un.'}`;
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
@@ -39,61 +47,60 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const { id } = await params;
   const product = await getProduct(id, session.accessToken);
 
-  return { title: product.name };
+  return { title: getProductName(product) };
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const session = await requireSession('products.read');
   const { id } = await params;
-  const canUpdate = hasPermission(session, 'products.update');
   const canDelete = hasPermission(session, 'products.delete');
-  const [product, options] = await Promise.all([
-    getProduct(id, session.accessToken),
-    canUpdate ? getProductOptions(session) : null,
-  ]);
-  const groupNames = product.groups.map((group) => group.name).join(', ');
+  const product = await getProduct(id, session.accessToken);
+  const productName = getProductName(product);
+  const status = isProductActive(product) ? 'Ativo' : 'Inativo';
 
   return (
     <RecordPageLayout
       backHref={PRODUCTS_HREF}
       backLabel='Produtos'
       icon={Package}
-      title={product.name}
-      description={`${product.manufacturer.name} · Cadastro criado em ${formatDate(product.createdAt, 'long')}`}
+      title={productName}
+      description={[product.manufacturer, `Código ${product.id}`, status].filter(Boolean).join(' · ')}
       actions={
         canDelete && (
           <DeleteRecordButton
             {...PRODUCT_DELETE_TEXTS}
-            recordName={product.name}
+            recordName={productName}
             deletePath={`/products/${product.id}`}
             listHref={PRODUCTS_HREF}
           />
         )
       }
     >
-      {options ? (
-        <ProductForm
-          product={product}
-          {...options}
-          attachments={getAttachmentPermissions(session.permissions)}
-        />
-      ) : (
-        <RecordDetails
-          title='Dados do produto'
-          fields={[
-            { label: 'Nome', value: product.name },
-            { label: 'Fabricante', value: product.manufacturer.name },
-            { label: 'Grupos', value: groupNames, wide: true },
-            { label: 'Preço de venda', value: formatPrice(product.price) },
-            { label: 'Preço de custo', value: formatPrice(product.costPrice) },
-            { label: 'Margem', value: formatMargin(product.price, product.costPrice), wide: true },
-            { label: 'Descrição', value: product.description, wide: true },
-            ...(product.files
-              ? [{ label: 'Anexos', value: <FileAttachments files={product.files} />, wide: true }]
-              : []),
-          ]}
-        />
-      )}
+      <RecordDetails
+        title='Dados do produto'
+        description='Dados disponíveis apenas para consulta.'
+        fields={[
+          { label: 'Nome', value: product.product },
+          { label: 'Código', value: product.id },
+          { label: 'Fabricante', value: product.manufacturer },
+          { label: 'Situação', value: status },
+          { label: 'Departamento', value: product.department },
+          { label: 'Seção', value: product.section },
+          { label: 'Categoria', value: product.category },
+          { label: 'Linha', value: product.line },
+          {
+            label: 'Culturas atendidas',
+            value: product.crops.length > 0 ? <BadgeList labels={product.crops} /> : null,
+            wide: true,
+          },
+          { label: 'Unidade de estoque', value: product.stockUnity },
+          { label: 'Unidade de compra', value: formatPurchaseUnit(product) },
+          { label: 'Peso bruto', value: formatMeasure(product.weight, 'kg') },
+          { label: 'Peso líquido', value: formatMeasure(product.weightNet, 'kg') },
+          { label: 'Volume', value: formatMeasure(product.volume) },
+          { label: 'NCM', value: product.ncm },
+        ]}
+      />
     </RecordPageLayout>
   );
 }

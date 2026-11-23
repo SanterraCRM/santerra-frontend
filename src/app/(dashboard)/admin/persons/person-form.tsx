@@ -20,15 +20,18 @@ import {
   optionalNationalIdSchema,
   optionalPhoneSchema,
 } from '@/lib/schemas';
-import type { Member } from '@/types/member';
 import type { CreatePersonInput, Person, PersonInput, PersonType } from '@/types/person';
 import type { Potential } from '@/types/potential';
 
 import {
   checkEmployeeFields,
+  type EmployeeAccessOptions,
   EmployeeFields,
   employeeFieldsSchema,
+  getEmployeeFieldError,
+  isCreatingAccess,
   toEmployeeFormValues,
+  toEmployeeInput,
 } from './employee-form';
 import { PERSON_TYPE_LABELS } from './persons-config';
 import {
@@ -54,6 +57,8 @@ const PERSON_TYPE_FIELDS_DESCRIPTIONS: Record<PersonType, string> = {
   employee: 'Data de admissão e membro da equipe.',
   producer: 'Potencial, cultura principal, área e endereço.',
 };
+
+const EMPLOYEE_ACCESS_FIELDS_DESCRIPTION = 'Data de admissão e acesso ao sistema.';
 
 function getPersonFormSchema(isCreating: boolean) {
   return z
@@ -81,6 +86,14 @@ function getPersonFormSchema(isCreating: boolean) {
 
       if (values.type === 'employee') {
         checkEmployeeFields(values, context);
+
+        if (isCreatingAccess(values) && !values.email) {
+          context.addIssue({
+            code: 'custom',
+            path: ['email'],
+            message: 'Informe o e-mail para dar acesso ao sistema',
+          });
+        }
       }
     });
 }
@@ -91,7 +104,11 @@ const updatePersonFormSchema = getPersonFormSchema(false);
 type PersonFormInput = z.input<typeof createPersonFormSchema>;
 type PersonFormOutput = z.output<typeof createPersonFormSchema>;
 
-function toFormValues(person: Person | undefined, personTypes: PersonType[]): PersonFormInput {
+function toFormValues(
+  person: Person | undefined,
+  personTypes: PersonType[],
+  canCreateAccess: boolean,
+): PersonFormInput {
   return {
     name: person?.name ?? '',
     nationalId: person?.nationalId ? maskNationalId(person.nationalId) : '',
@@ -99,7 +116,7 @@ function toFormValues(person: Person | undefined, personTypes: PersonType[]): Pe
     email: person?.email ?? '',
     type: personTypes.length === 1 ? personTypes[0] : undefined,
     ...toProducerFormValues(),
-    ...toEmployeeFormValues(),
+    ...toEmployeeFormValues(null, canCreateAccess),
   };
 }
 
@@ -112,9 +129,11 @@ function toCreatePersonInput(values: PersonFormOutput): CreatePersonInput {
     return { ...toPersonInput(values), producer: toProducerInput(values) };
   }
 
+  const { hiredAt, userCompanyId, access } = toEmployeeInput(values);
+
   return {
     ...toPersonInput(values),
-    employee: { hiredAt: values.hiredAt, userCompanyId: values.userCompanyId },
+    employee: { hiredAt, userCompanyId, ...(access && { access }) },
   };
 }
 
@@ -124,12 +143,15 @@ type PersonFormProps = {
   personTypes?: PersonType[];
   fixedType?: PersonType;
   potentials?: Pick<Potential, 'id' | 'name'>[];
-  members?: Pick<Member, 'id' | 'name' | 'email'>[];
+  canSearchMembers?: boolean;
   canCreatePotential?: boolean;
+  employeeAccess?: EmployeeAccessOptions | null;
 };
 
-function getCreatedMessage(fixedType: PersonType | undefined): string {
-  return fixedType ? `${PERSON_TYPE_LABELS[fixedType]} cadastrado.` : 'Pessoa cadastrada.';
+function getCreatedMessage(fixedType: PersonType | undefined, withAccess: boolean): string {
+  const created = fixedType ? `${PERSON_TYPE_LABELS[fixedType]} cadastrado` : 'Pessoa cadastrada';
+
+  return withAccess ? `${created}, com acesso ao sistema.` : `${created}.`;
 }
 
 function getFormDescription(person: Person | undefined, fixedType: PersonType | undefined): string {
@@ -150,8 +172,9 @@ export default function PersonForm({
   personTypes = [],
   fixedType,
   potentials = [],
-  members,
+  canSearchMembers = false,
   canCreatePotential = false,
+  employeeAccess = null,
 }: PersonFormProps) {
   const returnToList = useReturnToList(listHref);
   const { mutate: createPerson } = useCreatePerson();
@@ -159,7 +182,7 @@ export default function PersonForm({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const form = useForm({
     resolver: zodResolver(person ? updatePersonFormSchema : createPersonFormSchema),
-    defaultValues: toFormValues(person, fixedType ? [fixedType] : personTypes),
+    defaultValues: toFormValues(person, fixedType ? [fixedType] : personTypes, Boolean(employeeAccess)),
   });
   const {
     control,
@@ -169,6 +192,7 @@ export default function PersonForm({
     formState: { isDirty, isSubmitting },
   } = form;
   const selectedType = useWatch({ control, name: 'type' });
+  const email = useWatch({ control, name: 'email' });
 
   async function handleSave(values: PersonFormOutput) {
     setErrorMessage(null);
@@ -180,8 +204,15 @@ export default function PersonForm({
         await createPerson(toCreatePersonInput(values));
       }
     } catch (error) {
-      if (isApiErrorWithCode(error, 'MEMBER_ALREADY_LINKED')) {
-        setError('userCompanyId', { message: error.message }, { shouldFocus: true });
+      const employeeError = getEmployeeFieldError(error, canSearchMembers);
+
+      if (employeeError) {
+        setError(employeeError.field, { message: employeeError.message }, { shouldFocus: true });
+        return;
+      }
+
+      if (isApiErrorWithCode(error, 'ACCESS_EMAIL_REQUIRED')) {
+        setError('email', { message: error.message }, { shouldFocus: true });
         return;
       }
 
@@ -194,7 +225,11 @@ export default function PersonForm({
       return;
     }
 
-    returnToList(person ? 'Alterações salvas.' : getCreatedMessage(fixedType));
+    returnToList(
+      person
+        ? 'Alterações salvas.'
+        : getCreatedMessage(fixedType, values.type === 'employee' && values.hasAccess === true),
+    );
   }
 
   return (
@@ -273,11 +308,20 @@ export default function PersonForm({
 
             <FieldSet className='gap-5'>
               <FieldLegend>Dados de {PERSON_TYPE_LABELS[selectedType].toLowerCase()}</FieldLegend>
-              <FieldDescription>{PERSON_TYPE_FIELDS_DESCRIPTIONS[selectedType]}</FieldDescription>
+              <FieldDescription>
+                {selectedType === 'employee' && employeeAccess
+                  ? EMPLOYEE_ACCESS_FIELDS_DESCRIPTION
+                  : PERSON_TYPE_FIELDS_DESCRIPTIONS[selectedType]}
+              </FieldDescription>
               {selectedType === 'producer' ? (
                 <ProducerFields potentials={potentials} canCreatePotential={canCreatePotential} />
               ) : (
-                <EmployeeFields members={members} />
+                <EmployeeFields
+                  canSearchMembers={canSearchMembers}
+                  access={employeeAccess}
+                  personEmail={email}
+                  isEmailEditable
+                />
               )}
             </FieldSet>
           </>

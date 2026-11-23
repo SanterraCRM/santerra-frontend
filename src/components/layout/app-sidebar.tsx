@@ -33,7 +33,10 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/cn';
+import type { SessionCompany } from '@/types/next-auth';
 
+import { CompanyLogo } from './company-logo';
+import { CompanySwitcher } from './company-switcher';
 import {
   getVisibleNavSections,
   isNavGroup,
@@ -50,6 +53,11 @@ const MENU_BUTTON_CLASS = cn(
   ACTIVE_BAR_CLASS,
   'h-9 font-medium text-foreground/80 hover:bg-sidebar-foreground/5 hover:text-foreground data-open:hover:bg-sidebar-foreground/5 data-open:hover:text-foreground data-active:bg-sidebar-accent data-active:font-semibold data-active:text-sidebar-accent-foreground data-active:hover:bg-sidebar-accent data-active:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:before:hidden',
 );
+
+const BRAND_BUTTON_CLASS = 'hover:bg-transparent active:bg-transparent';
+
+const SWITCHER_BUTTON_CLASS =
+  'hover:bg-sidebar-foreground/5 hover:text-foreground active:bg-sidebar-foreground/5 data-[state=open]:bg-sidebar-foreground/5';
 
 const SUB_MENU_CLASS = 'mt-0.5 mr-0 ml-5 translate-x-0 gap-0 border-l-0 px-0 py-0';
 
@@ -177,13 +185,41 @@ type GroupToggle = {
   pathname: string;
 };
 
+type SidebarBrandProps = {
+  company: SessionCompany | null;
+};
+
+function SidebarBrand({ company }: SidebarBrandProps) {
+  return (
+    <>
+      {company?.logo ? (
+        <CompanyLogo company={company} className='size-8 shrink-0 shadow-md shadow-brand-600/20' />
+      ) : (
+        <Image
+          src='/logo.png'
+          alt=''
+          width={32}
+          height={32}
+          priority
+          className='size-8 shrink-0 rounded-full shadow-md shadow-brand-600/20'
+        />
+      )}
+      <span className='grid min-w-0 leading-tight'>
+        <span className='truncate text-base font-bold tracking-tight text-foreground'>WebUp!</span>
+        <span className='truncate text-xs text-muted-foreground'>{company?.name ?? ''}</span>
+      </span>
+    </>
+  );
+}
+
 type AppSidebarProps = {
-  companyName: string;
+  company: SessionCompany | null;
+  companies: SessionCompany[];
   permissions: string[];
   isPlatformAdmin: boolean;
 };
 
-export function AppSidebar({ companyName, permissions, isPlatformAdmin }: AppSidebarProps) {
+export function AppSidebar({ company, companies, permissions, isPlatformAdmin }: AppSidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { isMobile, setOpenMobile, state } = useSidebar();
@@ -192,7 +228,8 @@ export function AppSidebar({ companyName, permissions, isPlatformAdmin }: AppSid
     session?.permissions ?? permissions,
     session?.isPlatformAdmin ?? isPlatformAdmin,
   );
-  const currentCompanyName = session?.company?.name ?? companyName;
+  const currentCompany = session ? session.company : company;
+  const availableCompanies = session?.companies ?? companies;
   const showsOnlyIcons = state === 'collapsed' && !isMobile;
 
   function closeMobileMenu() {
@@ -219,28 +256,22 @@ export function AppSidebar({ companyName, permissions, isPlatformAdmin }: AppSid
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              size='lg'
-              className='hover:bg-transparent active:bg-transparent'
-            >
-              <Link href='/admin' onClick={closeMobileMenu}>
-                <Image
-                  src='/logo.png'
-                  alt=''
-                  width={32}
-                  height={32}
-                  priority
-                  className='size-8 shrink-0 rounded-full shadow-md shadow-brand-600/20'
-                />
-                <span className='grid min-w-0 leading-tight'>
-                  <span className='truncate text-base font-bold tracking-tight text-foreground'>
-                    WebUp!
-                  </span>
-                  <span className='truncate text-xs text-muted-foreground'>{currentCompanyName}</span>
-                </span>
-              </Link>
-            </SidebarMenuButton>
+            {availableCompanies.length > 1 ? (
+              <CompanySwitcher
+                companies={availableCompanies}
+                currentCompanyId={currentCompany?.id ?? null}
+                side={showsOnlyIcons ? 'right' : 'bottom'}
+                className={SWITCHER_BUTTON_CLASS}
+              >
+                <SidebarBrand company={currentCompany} />
+              </CompanySwitcher>
+            ) : (
+              <SidebarMenuButton asChild size='lg' className={BRAND_BUTTON_CLASS}>
+                <Link href='/admin' onClick={closeMobileMenu}>
+                  <SidebarBrand company={currentCompany} />
+                </Link>
+              </SidebarMenuButton>
+            )}
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

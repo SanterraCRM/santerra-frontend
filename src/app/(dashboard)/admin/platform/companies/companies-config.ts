@@ -1,6 +1,19 @@
 import type { ListEmptyStateTexts } from '@/components/list/list-empty-state';
+import type { FilterDefinition } from '@/lib/list-filters';
 
 export const PLATFORM_COMPANIES_HREF = '/admin/platform/companies';
+
+export const PLATFORM_COMPANY_FILTERS: FilterDefinition[] = [
+  {
+    type: 'select',
+    key: 'active',
+    label: 'Situação',
+    options: [
+      { value: 'true', label: 'Ativas' },
+      { value: 'false', label: 'Inativas' },
+    ],
+  },
+];
 
 export const PLATFORM_COMPANY_EMPTY_TEXTS: ListEmptyStateTexts = {
   notFoundTitle: 'Nenhuma empresa encontrada',

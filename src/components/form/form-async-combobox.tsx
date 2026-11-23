@@ -11,7 +11,14 @@ import { FormLabel } from './form-label';
 
 type FormAsyncComboboxProps<TValues extends FieldValues, TContext, TTransformed> = Pick<
   AsyncComboboxProps,
-  'source' | 'multiple' | 'placeholder' | 'searchPlaceholder' | 'emptyMessage' | 'excludeValues' | 'disabled'
+  | 'source'
+  | 'multiple'
+  | 'placeholder'
+  | 'searchPlaceholder'
+  | 'emptyMessage'
+  | 'emptyOption'
+  | 'excludeValues'
+  | 'disabled'
 > & {
   control: Control<TValues, TContext, TTransformed>;
   name: FieldPath<TValues>;

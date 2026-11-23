@@ -8,6 +8,12 @@ const dateFormatters = {
   long: new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: TIME_ZONE }),
 };
 
+const dayFormatter = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', timeZone: TIME_ZONE });
+const shortMonthFormatter = new Intl.DateTimeFormat('pt-BR', {
+  month: 'short',
+  timeZone: TIME_ZONE,
+});
+
 const dateInputFormatter = new Intl.DateTimeFormat('en-CA', {
   year: 'numeric',
   month: '2-digit',
@@ -23,6 +29,17 @@ const decimalFormatter = new Intl.NumberFormat('pt-BR', {
 
 const currencyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
+const compactCurrencyFormatter = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
+
+const COMPACT_CURRENCY_FROM = 1000;
+
+const INTEGER_MAX_DIGITS = 9;
+
 const percentFormatter = new Intl.NumberFormat('pt-BR', {
   style: 'percent',
   maximumFractionDigits: 1,
@@ -36,6 +53,16 @@ export function onlyDigits(value: string): string {
 
 export function formatCurrency(value: number): string {
   return currencyFormatter.format(value);
+}
+
+export function formatCompactCurrency(value: number): string {
+  return Math.abs(value) < COMPACT_CURRENCY_FROM
+    ? currencyFormatter.format(value)
+    : compactCurrencyFormatter.format(value);
+}
+
+export function maskInteger(value: string): string {
+  return onlyDigits(value).replace(/^0+(?=\d)/, '').slice(0, INTEGER_MAX_DIGITS);
 }
 
 export function maskMoney(value: string): string {
@@ -110,6 +137,27 @@ export function formatDate(
   style: keyof typeof dateFormatters = 'short',
 ): string {
   return dateFormatters[style].format(new Date(value));
+}
+
+export function formatDateParts(value: string | Date): { day: string; month: string } {
+  const date = new Date(value);
+
+  return {
+    day: dayFormatter.format(date),
+    month: shortMonthFormatter.format(date).replace('.', ''),
+  };
+}
+
+const calendarDateFormatters = {
+  short: new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeZone: 'UTC' }),
+  long: new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: 'UTC' }),
+};
+
+export function formatCalendarDate(
+  value: string | Date,
+  style: keyof typeof calendarDateFormatters = 'short',
+): string {
+  return calendarDateFormatters[style].format(new Date(value));
 }
 
 export function toDayBoundary(date: string, boundary: 'start' | 'end'): string {

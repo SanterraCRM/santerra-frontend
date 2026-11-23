@@ -8,6 +8,7 @@ import { FileAttachments } from '@/components/files/file-attachments';
 import { RecordPageLayout } from '@/components/layout/record-page-layout';
 import { getRecordOrNotFound } from '@/lib/api';
 import { authOptions } from '@/lib/auth';
+import { resolveComboboxOption } from '@/lib/combobox-sources';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { hasPermission, requireSession } from '@/lib/session';
 import type { CommercialAction } from '@/types/commercial-action';
@@ -56,6 +57,9 @@ export default async function CommercialActionPage({ params }: CommercialActionP
     getAction(id, session.accessToken),
     canUpdate ? getActionFormOptions(session) : null,
   ]);
+  const currentWallet = options
+    ? await resolveComboboxOption('wallets', action.walletId, session.accessToken)
+    : null;
   const title = getActionTitle(action);
 
   return (
@@ -77,12 +81,12 @@ export default async function CommercialActionPage({ params }: CommercialActionP
       }
     >
       {options ? (
-        <CommercialActionForm action={action} {...options} />
+        <CommercialActionForm action={action} currentWallet={currentWallet} {...options} />
       ) : (
         <RecordDetails
           title='Dados da ação'
           fields={[
-            { label: 'Evento', value: action.event.name },
+            { label: 'Tipo de evento', value: action.event.name },
             { label: 'Nº da nota', value: action.invoiceNumber },
             { label: 'Descrição', value: action.description, wide: true },
             { label: 'Início', value: formatOptionalDate(action.initialDate) },
